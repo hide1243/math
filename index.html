@@ -31,6 +31,14 @@
       body { background: white !important; color: black !important; }
       .print-card { border: 1px solid #e2e8f0 !important; background: white !important; color: black !important; }
     }
+    @keyframes popIn {
+      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.9; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    }
+    .animate-pop {
+      animation: popIn 0.5s ease-out forwards;
+    }
   </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
@@ -50,8 +58,10 @@
     </div>
   </header>
 
-  <main class="flex-1 flex flex-col items-center justify-center p-4 max-w-xl mx-auto w-full">
+  <main class="flex-1 flex flex-col items-center justify-center p-4 max-w-xl mx-auto w-full relative">
     
+    <div id="result-overlay" class="fixed top-1/2 left-1/2 pointer-events-none z-50 text-8xl font-black hidden"></div>
+
     <div id="mode-select" class="w-full space-y-5">
       
       <div class="text-center space-y-1">
@@ -62,7 +72,7 @@
       <div class="bg-slate-200/70 dark:bg-slate-800/60 p-1.5 rounded-2xl flex gap-1.5 border border-slate-300/40 dark:border-slate-700/40">
         <button id="diff-easy" onclick="setDifficulty('easy')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all">初級</button>
         <button id="diff-normal" onclick="setDifficulty('normal')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all">中級</button>
-        <button id="diff-hard" onclick="setDifficulty('hard')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all">上級</button>
+        <button id="diff-hard" onclick="setDifficulty('hard')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all">上級 (1対1・共テ)</button>
       </div>
 
       <div class="space-y-2.5">
@@ -72,7 +82,7 @@
         </button>
         <button onclick="startGame('factor')" class="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-emerald-500/25 border-b-4 border-emerald-800 transition active:border-b-0 active:translate-y-1 flex items-center justify-between">
           <span>⚡ 因数分解スピードトレ</span>
-          <span class="text-xs font-normal opacity-80">10问計測</span>
+          <span class="text-xs font-normal opacity-80">10問計測</span>
         </button>
         <button id="retry-btn" onclick="startRetryMode()" class="w-full py-3.5 px-6 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-bold text-sm shadow-lg shadow-rose-500/20 border-b-4 border-rose-800 transition active:border-b-0 active:translate-y-1 flex items-center justify-between">
           <span>🔥 ミス問題の復習</span>
@@ -104,23 +114,29 @@
 
       <div id="card" class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none text-center space-y-2">
         <div class="text-xs font-bold text-slate-400 uppercase tracking-wider" id="mode-label">展開しなさい</div>
-        <div id="question" class="text-2xl font-black tracking-wide text-slate-900 dark:text-white py-1">--</div>
+        <div id="question" class="text-xl font-black tracking-wide text-slate-900 dark:text-white py-1 leading-relaxed">--</div>
       </div>
 
       <div class="space-y-2.5">
         <input type="text" id="answer-input" placeholder="答えを入力" class="w-full py-3 px-4 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl text-center text-lg font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-500 shadow-sm transition" autocomplete="off">
         
-        <div class="grid grid-cols-5 gap-1.5 pt-1">
-          <button onclick="appendKey('x')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">x</button>
-          <button onclick="appendKey('y')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">y</button>
-          <button onclick="appendKey('²')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">²</button>
-          <button onclick="appendKey('³')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">³</button>
-          <button onclick="appendKey('+')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">+</button>
-          
-          <button onclick="appendKey('-')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">-</button>
-          <button onclick="appendKey('(')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">(</button>
-          <button onclick="appendKey(')')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">)</button>
-          <button onclick="backspaceKey()" class="col-span-2 py-2.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold rounded-xl text-sm transition active:scale-95">⌫ 1文字削除</button>
+        <div class="grid grid-cols-6 gap-1.5 pt-1">
+          <button onclick="appendKey('a')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">a</button>
+          <button onclick="appendKey('b')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">b</button>
+          <button onclick="appendKey('c')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">c</button>
+          <button onclick="appendKey('x')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">x</button>
+          <button onclick="appendKey('y')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">y</button>
+          <button onclick="appendKey('z')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">z</button>
+
+          <button onclick="appendKey('²')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">²</button>
+          <button onclick="appendKey('³')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">³</button>
+          <button onclick="appendKey('⁴')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">⁴</button>
+          <button onclick="appendKey('+')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">+</button>
+          <button onclick="appendKey('-')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">-</button>
+          <button onclick="backspaceKey()" class="py-2 bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold rounded-xl text-xs transition active:scale-95">⌫</button>
+
+          <button onclick="appendKey('(')" class="col-span-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">(</button>
+          <button onclick="appendKey(')')" class="col-span-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">)</button>
         </div>
 
         <button onclick="checkAnswer()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-indigo-500/25 border-b-4 border-indigo-800 transition active:border-b-0 active:translate-y-1">
@@ -209,6 +225,49 @@
     let isRetryMode = false;
     let currentSheetData = [];
     let showAnswersFlag = false;
+    let recentQuestions = [];
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      const now = audioCtx.currentTime;
+      if (type === 'correct') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(659.25, now + 0.1);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } else {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.setValueAtTime(110, now + 0.1);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      }
+    }
+
+    function triggerVisualFeedback(isCorrect) {
+      const overlay = document.getElementById('result-overlay');
+      overlay.innerText = isCorrect ? '⭕' : '❌';
+      overlay.className = `fixed top-1/2 left-1/2 pointer-events-none z-50 text-8xl font-black animate-pop ${isCorrect ? 'text-emerald-500' : 'text-rose-500'}`;
+      overlay.classList.remove('hidden');
+
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+      }, 450);
+    }
 
     function initTheme() {
       const savedTheme = localStorage.getItem('math_theme') || 'light';
@@ -233,7 +292,6 @@
       if (e.key === 'Enter') checkAnswer();
     });
 
-    /* テンキーのキー入力補助 */
     function appendKey(char) {
       const input = document.getElementById('answer-input');
       input.value += char;
@@ -287,114 +345,193 @@
       return `${sign}${numStr}${varStr}`;
     }
 
-    function generateExpandQuestion() {
+    function generateUniqueExpandQuestion() {
+      let q;
+      let maxTry = 10;
+      while (maxTry-- > 0) {
+        q = makeExpandData();
+        if (!recentQuestions.includes(q.text)) break;
+      }
+      recentQuestions.push(q.text);
+      if (recentQuestions.length > 15) recentQuestions.shift();
+      return q;
+    }
+
+    function makeExpandData() {
       if (currentDifficulty === 'easy') {
-        const a = getRandomNonZero(-8, 8);
-        const b = getRandomNonZero(-8, 8);
-        const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)})(x ${b>0?'+ '+b:'- '+Math.abs(b)})`;
-        const sum = a + b, prod = a * b;
-        const ans = `x²${fmtTerm(sum, 'x')}${fmtTerm(prod, '')}`;
-        return { text: qText, answer: ans, type: '展開' };
+        const type = Math.floor(Math.random() * 3);
+        if (type === 0) {
+          const a = getRandomNonZero(-9, 9);
+          const b = getRandomNonZero(-9, 9);
+          const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)})(x ${b>0?'+ '+b:'- '+Math.abs(b)})`;
+          const ans = `x²${fmtTerm(a+b, 'x')}${fmtTerm(a*b, '')}`;
+          return { text: qText, answer: ans, type: '展開' };
+        } else if (type === 1) {
+          const a = getRandomNonZero(-9, 9);
+          const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)})²`;
+          const ans = `x²${fmtTerm(2*a, 'x')}${fmtTerm(a*a, '')}`;
+          return { text: qText, answer: ans, type: '展開' };
+        } else {
+          const a = Math.floor(Math.random() * 9) + 1;
+          const qText = `(x + ${a})(x - ${a})`;
+          const ans = `x²${fmtTerm(-a*a, '')}`;
+          return { text: qText, answer: ans, type: '展開' };
+        }
       } 
       else if (currentDifficulty === 'normal') {
-        const a = Math.floor(Math.random() * 4) + 2;
-        const c = Math.floor(Math.random() * 3) + 1;
-        const b = getRandomNonZero(-6, 6);
-        const d = getRandomNonZero(-6, 6);
-        
-        const qText = `(${fmtTerm(a,'x',true)} ${b>0?'+ '+b:'- '+Math.abs(b)})(${fmtTerm(c,'x',true)} ${d>0?'+ '+d:'- '+Math.abs(d)})`;
-        const A = a * c;
-        const B = a * d + b * c;
-        const C = b * d;
-        const ans = `${fmtTerm(A,'x²',true)}${fmtTerm(B,'x')}${fmtTerm(C,'')}`;
-        return { text: qText, answer: ans, type: '展開' };
-      } 
-      else {
-        const type = Math.random() > 0.5 ? 1 : 2;
-        if (type === 1) {
-          const a = getRandomNonZero(-4, 4);
-          const b = getRandomNonZero(-4, 4);
-          const c = getRandomNonZero(-4, 4);
-          const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)})(x ${b>0?'+ '+b:'- '+Math.abs(b)})(x ${c>0?'+ '+c:'- '+Math.abs(c)})`;
-          const c2 = a + b + c;
-          const c1 = a*b + b*c + c*a;
-          const c0 = a * b * c;
-          const ans = `x³${fmtTerm(c2,'x²')}${fmtTerm(c1,'x')}${fmtTerm(c0,'')}`;
+        const type = Math.floor(Math.random() * 3);
+        if (type === 0) {
+          const a = Math.floor(Math.random() * 4) + 2;
+          const c = Math.floor(Math.random() * 3) + 1;
+          const b = getRandomNonZero(-6, 6);
+          const d = getRandomNonZero(-6, 6);
+          const qText = `(${fmtTerm(a,'x',true)} ${b>0?'+ '+b:'- '+Math.abs(b)})(${fmtTerm(c,'x',true)} ${d>0?'+ '+d:'- '+Math.abs(d)})`;
+          const ans = `${fmtTerm(a*c,'x²',true)}${fmtTerm(a*d+b*c,'x')}${fmtTerm(b*d,'')}`;
+          return { text: qText, answer: ans, type: '展開' };
+        } else if (type === 1) {
+          const a = Math.floor(Math.random() * 3) + 2;
+          const b = getRandomNonZero(-5, 5);
+          const qText = `(${fmtTerm(a,'x',true)} ${b>0?'+ '+b:'- '+Math.abs(b)})²`;
+          const ans = `${fmtTerm(a*a,'x²',true)}${fmtTerm(2*a*b,'x')}${fmtTerm(b*b,'')}`;
           return { text: qText, answer: ans, type: '展開' };
         } else {
           const a = getRandomNonZero(-5, 5);
-          const qText = `(x + y ${a>0?'+ '+a:'- '+Math.abs(a)})²`;
-          const a2 = a * 2;
-          const aSq = a * a;
-          const ans = `x²+2xy+y²${fmtTerm(a2,'x')}${fmtTerm(a2,'y')}${fmtTerm(aSq,'')}`;
+          const b = getRandomNonZero(-5, 5);
+          const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)}y)(x ${b>0?'+ '+b:'- '+Math.abs(b)}y)`;
+          const ans = `x²${fmtTerm(a+b, 'xy')}${fmtTerm(a*b, 'y²')}`;
+          return { text: qText, answer: ans, type: '展開' };
+        }
+      } 
+      else {
+        // 上級 (1対1・共通テストレベル)
+        const type = Math.floor(Math.random() * 4);
+        if (type === 0) { // (x+a)(x+b)(x+c)(x+d) の組替え展開
+          const a = 1, b = 2, c = 3, d = 4; // (x+1)(x+4)(x+2)(x+3) -> (x²+5x+4)(x²+5x+6)
+          const qText = `(x + 1)(x + 2)(x + 3)(x + 4)`;
+          const ans = `x⁴+10x³+35x²+50x+24`;
+          return { text: qText, answer: ans, type: '展開' };
+        } else if (type === 1) { // 3変数対称式の展開 (a+b+c)(ab+bc+ca)
+          const qText = `(a + b + c)(ab + bc + ca)`;
+          const ans = `a²b+ab²+b²c+bc²+c²a+ca²+3abc`;
+          return { text: qText, answer: ans, type: '展開' };
+        } else if (type === 2) { // 3項2乗展開 (x + y + z)²
+          const k = getRandomNonZero(-3, 3);
+          const qText = `(x + y ${k>0?'+ '+k:'- '+Math.abs(k)})²`;
+          const ans = `x²+2xy+y²${fmtTerm(2*k,'x')}${fmtTerm(2*k,'y')}${fmtTerm(k*k,'')}`;
+          return { text: qText, answer: ans, type: '展開' };
+        } else { // (a + b)³ の展開
+          const a = Math.floor(Math.random() * 2) + 2;
+          const qText = `(${a}x + 1)³`;
+          const a3 = a*a*a, a23 = 3*a*a, a3_ = 3*a;
+          const ans = `${a3}x³+${a23}x²+${a3_}x+1`;
           return { text: qText, answer: ans, type: '展開' };
         }
       }
     }
 
-    function generateFactorQuestion() {
+    function generateUniqueFactorQuestion() {
+      let q;
+      let maxTry = 10;
+      while (maxTry-- > 0) {
+        q = makeFactorData();
+        if (!recentQuestions.includes(q.text)) break;
+      }
+      recentQuestions.push(q.text);
+      if (recentQuestions.length > 15) recentQuestions.shift();
+      return q;
+    }
+
+    function makeFactorData() {
       if (currentDifficulty === 'easy') {
-        const a = getRandomNonZero(-8, 8);
-        const b = getRandomNonZero(-8, 8);
-        const sum = a + b, prod = a * b;
-        const qText = `x²${fmtTerm(sum,'x')}${fmtTerm(prod,'')}`;
-        const strA = a > 0 ? `+${a}` : `${a}`;
-        const strB = b > 0 ? `+${b}` : `${b}`;
-        return {
-          text: qText,
-          answerValid: [`(x${strA})(x${strB})`, `(x${strB})(x${strA})`],
-          answerShow: `(x${strA})(x${strB})`,
-          type: '因数分解'
-        };
-      } 
-      else if (currentDifficulty === 'normal') {
-        const a = Math.floor(Math.random() * 3) + 2;
-        const c = Math.floor(Math.random() * 2) + 1;
-        const b = getRandomNonZero(-5, 5);
-        const d = getRandomNonZero(-5, 5);
-
-        const A = a * c;
-        const B = a * d + b * c;
-        const C = b * d;
-
-        const qText = `${fmtTerm(A,'x²',true)}${fmtTerm(B,'x')}${fmtTerm(C,'')}`;
-        const term1 = `${fmtTerm(a,'x',true)}${b>0?'+'+b:b}`;
-        const term2 = `${fmtTerm(c,'x',true)}${d>0?'+'+d:d}`;
-
-        return {
-          text: qText,
-          answerValid: [`(${term1})(${term2})`, `(${term2})(${term1})`],
-          answerShow: `(${term1})(${term2})`,
-          type: '因数分解'
-        };
-      } 
-      else {
-        const type = Math.random() > 0.5 ? 1 : 2;
-        if (type === 1) {
-          const a = getRandomNonZero(-5, 5);
-          const b = getRandomNonZero(-5, 5);
-          const sum = a + b, prod = a * b;
-          const qText = `x⁴${fmtTerm(sum,'x²')}${fmtTerm(prod,'')}`;
+        const type = Math.floor(Math.random() * 3);
+        if (type === 0) {
+          const a = getRandomNonZero(-8, 8);
+          const b = getRandomNonZero(-8, 8);
+          const qText = `x²${fmtTerm(a+b,'x')}${fmtTerm(a*b,'')}`;
           const strA = a > 0 ? `+${a}` : `${a}`;
           const strB = b > 0 ? `+${b}` : `${b}`;
-          return {
-            text: qText,
-            answerValid: [`(x²${strA})(x²${strB})`, `(x²${strB})(x²${strA})`],
-            answerShow: `(x²${strA})(x²${strB})`,
-            type: '因数分解'
-          };
+          return { text: qText, answerValid: [`(x${strA})(x${strB})`, `(x${strB})(x${strA})`], answerShow: `(x${strA})(x${strB})`, type: '因数分解' };
+        } else if (type === 1) {
+          const a = Math.floor(Math.random() * 8) + 2;
+          const qText = `x² - ${a*a}`;
+          return { text: qText, answerValid: [`(x+${a})(x-${a})`, `(x-${a})(x+${a})`], answerShow: `(x+${a})(x-${a})`, type: '因数分解' };
         } else {
-          const a = Math.floor(Math.random() * 4) + 2;
-          const isPlus = Math.random() > 0.5;
-          const qText = isPlus ? `x³ + ${a*a*a}` : `x³ - ${a*a*a}`;
-          const aSq = a * a;
-          const ansStr = isPlus ? `(x+${a})(x²-${a}x+${aSq})` : `(x-${a})(x²+${a}x+${aSq})`;
-
-          return {
-            text: qText,
-            answerValid: [ansStr],
-            answerShow: ansStr,
-            type: '因数分解'
+          const a = getRandomNonZero(-7, 7);
+          const qText = `x²${fmtTerm(2*a,'x')}${fmtTerm(a*a,'')}`;
+          const strA = a > 0 ? `+${a}` : `${a}`;
+          return { text: qText, answerValid: [`(x${strA})²`], answerShow: `(x${strA})²`, type: '因数分解' };
+        }
+      } 
+      else if (currentDifficulty === 'normal') {
+        const type = Math.floor(Math.random() * 3);
+        if (type === 0) {
+          const a = Math.floor(Math.random() * 3) + 2;
+          const c = Math.floor(Math.random() * 2) + 1;
+          const b = getRandomNonZero(-5, 5);
+          const d = getRandomNonZero(-5, 5);
+          const qText = `${fmtTerm(a*c,'x²',true)}${fmtTerm(a*d+b*c,'x')}${fmtTerm(b*d,'')}`;
+          const t1 = `${fmtTerm(a,'x',true)}${b>0?'+'+b:b}`;
+          const t2 = `${fmtTerm(c,'x',true)}${d>0?'+'+d:d}`;
+          return { text: qText, answerValid: [`(${t1})(${t2})`, `(${t2})(${t1})`], answerShow: `(${t1})(${t2})`, type: '因数分解' };
+        } else if (type === 1) {
+          const m = Math.floor(Math.random() * 4) + 2;
+          const a = getRandomNonZero(-5, 5);
+          const b = getRandomNonZero(-5, 5);
+          const qText = `${m}x²${fmtTerm(m*(a+b),'x')}${fmtTerm(m*a*b,'')}`;
+          const strA = a > 0 ? `+${a}` : `${a}`;
+          const strB = b > 0 ? `+${b}` : `${b}`;
+          return { text: qText, answerValid: [`${m}(x${strA})(x${strB})`, `${m}(x${strB})(x${strA})`], answerShow: `${m}(x${strA})(x${strB})`, type: '因数分解' };
+        } else {
+          const a = getRandomNonZero(-5, 5);
+          const b = getRandomNonZero(-5, 5);
+          const qText = `x²${fmtTerm(a+b,'xy')}${fmtTerm(a*b,'y²')}`;
+          const strA = a > 0 ? `+${a}` : `${a}`;
+          const strB = b > 0 ? `+${b}` : `${b}`;
+          return { text: qText, answerValid: [`(x${strA}y)(x${strB}y)`, `(x${strB}y)(x${strA}y)`], answerShow: `(x${strA}y)(x${strB}y)`, type: '因数分解' };
+        }
+      } 
+      else {
+        // 上級 (1対1・思考力レベル)
+        const type = Math.floor(Math.random() * 4);
+        if (type === 0) { // 共通部分置き換え (x²-2x)² - 11(x²-2x) + 24 
+          const qText = `(x² - 2x)² - 11(x² - 2x) + 24`;
+          return { 
+            text: qText, 
+            answerValid: [
+              `(x-3)(x+1)(x-4)(x+2)`, `(x+1)(x-3)(x-4)(x+2)`, `(x-4)(x+2)(x-3)(x+1)`
+            ], 
+            answerShow: `(x-3)(x+1)(x-4)(x+2)`, 
+            type: '因数分解' 
+          };
+        } else if (type === 1) { // 複二次式（足して引いて平方の差を作る） x⁴ + 4y⁴
+          const qText = `x⁴ + 4y⁴`;
+          return { 
+            text: qText, 
+            answerValid: [
+              `(x²+2xy+2y²)(x²-2xy+2y²)`, `(x²-2xy+2y²)(x²+2xy+2y²)`
+            ], 
+            answerShow: `(x²+2xy+2y²)(x²-2xy+2y²)`, 
+            type: '因数分解' 
+          };
+        } else if (type === 2) { // 2変数・最低次で整理 2x² + 5xy + 2y² + 4x + 5y + 2
+          const qText = `2x² + 5xy + 2y² + 4x + 5y + 2`;
+          return { 
+            text: qText, 
+            answerValid: [
+              `(x+2y+1)(2x+y+2)`, `(2x+y+2)(x+2y+1)`
+            ], 
+            answerShow: `(x+2y+1)(2x+y+2)`, 
+            type: '因数分解' 
+          };
+        } else { // 交代式 a(b²-c²) + b(c²-a²) + c(a²-b²)
+          const qText = `a(b² - c²) + b(c² - a²) + c(a² - b²)`;
+          return { 
+            text: qText, 
+            answerValid: [
+              `-(a-b)(b-c)(c-a)`, `(a-b)(b-c)(a-c)`, `(b-a)(c-b)(a-c)`
+            ], 
+            answerShow: `(a-b)(b-c)(a-c)`, 
+            type: '因数分解' 
           };
         }
       }
@@ -427,7 +564,7 @@
       document.getElementById('q-num').innerText = qIndex;
       document.getElementById('q-total').innerText = totalQuestionsInGame;
       
-      const diffNames = { easy: '初級', normal: '中級', hard: '上級' };
+      const diffNames = { easy: '初級', normal: '中級', hard: '上級 (1対1・共テ)' };
       document.getElementById('diff-label').innerText = diffOverride || diffNames[currentDifficulty];
       
       startTime = Date.now();
@@ -445,7 +582,7 @@
         currentQuestionData = retryQuestions[qIndex - 1];
         document.getElementById('mode-label').innerText = currentQuestionData.type === '展開' ? '展開しなさい' : '因数分解しなさい';
       } else {
-        currentQuestionData = currentMode === 'expand' ? generateExpandQuestion() : generateFactorQuestion();
+        currentQuestionData = currentMode === 'expand' ? generateUniqueExpandQuestion() : generateUniqueFactorQuestion();
         document.getElementById('mode-label').innerText = currentMode === 'expand' ? '展開しなさい' : '因数分解しなさい';
       }
       document.getElementById('question').innerText = currentQuestionData.text;
@@ -458,27 +595,47 @@
         .replace(/\^2/g, '²')
         .replace(/\^3/g, '³')
         .replace(/\^4/g, '⁴')
-        .replace(/x2/g, 'x²')
-        .replace(/y2/g, 'y²')
-        .replace(/x3/g, 'x³')
-        .replace(/x4/g, 'x⁴');
+        .replace(/a2/g, 'a²').replace(/b2/g, 'b²').replace(/c2/g, 'c²')
+        .replace(/x2/g, 'x²').replace(/y2/g, 'y²').replace(/z2/g, 'z²')
+        .replace(/x3/g, 'x³').replace(/x4/g, 'x⁴');
+    }
+
+    function parseTerms(str) {
+      let norm = normalize(str);
+      if (norm[0] !== '+' && norm[0] !== '-') norm = '+' + norm;
+      const terms = norm.match(/[+-][^+-]+/g) || [];
+      return terms.map(t => {
+        return t.replace(/\+1(?=[a-z²³⁴])/, '+').replace(/\-1(?=[a-z²³⁴])/, '-');
+      }).sort();
+    }
+
+    function comparePolynomials(user, target) {
+      const uTerms = parseTerms(user);
+      const tTerms = parseTerms(target);
+      if (uTerms.length !== tTerms.length) return false;
+      return uTerms.every((term, idx) => term === tTerms[idx]);
     }
 
     function checkAnswer() {
-      const userAns = normalize(document.getElementById('answer-input').value);
-      if (!userAns) return;
+      const inputEl = document.getElementById('answer-input');
+      const userRaw = inputEl.value;
+      if (!userRaw.trim()) return;
 
       incrementTotalQuestions();
 
-      let isCorrect = currentQuestionData.type === '展開' 
-        ? (userAns === normalize(currentQuestionData.answer))
-        : currentQuestionData.answerValid.some(ans => userAns === normalize(ans));
+      let isCorrect = false;
 
-      const feedbackEl = document.getElementById('feedback');
+      if (currentQuestionData.type === '展開') {
+        isCorrect = comparePolynomials(userRaw, currentQuestionData.answer);
+      } else {
+        const normUser = normalize(userRaw);
+        isCorrect = currentQuestionData.answerValid.some(ans => normUser === normalize(ans));
+      }
+
+      playSound(isCorrect ? 'correct' : 'wrong');
+      triggerVisualFeedback(isCorrect);
+
       if (isCorrect) {
-        feedbackEl.className = 'text-center font-bold h-6 text-sm text-emerald-500';
-        feedbackEl.innerText = '⭕ 正解！';
-
         if (isRetryMode) {
           removeMistake(currentQuestionData);
         }
@@ -491,15 +648,13 @@
           } else {
             finishGame();
           }
-        }, 500);
+        }, 350);
       } else {
-        feedbackEl.className = 'text-center font-bold h-6 text-sm text-rose-500';
-        const correctShow = currentQuestionData.type === '展開' ? currentQuestionData.answer : currentQuestionData.answerShow;
-        feedbackEl.innerText = `❌ 不正解！ 正解: ${correctShow}`;
-
         if (!isRetryMode) {
           saveMistake(currentQuestionData);
         }
+        inputEl.value = '';
+        inputEl.focus();
       }
     }
 
@@ -554,9 +709,9 @@
 
       for (let i = 0; i < 10; i++) {
         let q;
-        if (type === 'expand') q = generateExpandQuestion();
-        else if (type === 'factor') q = generateFactorQuestion();
-        else q = Math.random() > 0.5 ? generateExpandQuestion() : generateFactorQuestion();
+        if (type === 'expand') q = generateUniqueExpandQuestion();
+        else if (type === 'factor') q = generateUniqueFactorQuestion();
+        else q = Math.random() > 0.5 ? generateUniqueExpandQuestion() : generateUniqueFactorQuestion();
         currentSheetData.push(q);
       }
       renderSheet();
