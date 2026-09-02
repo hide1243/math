@@ -31,10 +31,10 @@
     <div id="mode-select" class="w-full space-y-4">
       <h2 class="text-center text-lg text-slate-300 font-semibold mb-6">モードを選択してください</h2>
       <button onclick="startGame('expand')" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
-        展開トレーニング
+        展開トレーニング（10問）
       </button>
       <button onclick="startGame('factor')" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
-        因数分解トレーニング
+        因数分解トレーニング（10問）
       </button>
       <button onclick="showDashboard()" class="w-full py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl font-medium transition">
         ダッシュボード（成績確認）
@@ -42,22 +42,28 @@
     </div>
 
     <!-- ゲーム画面 -->
-    <div id="game-screen" class="w-full hidden space-y-6">
+    <div id="game-screen" class="w-full hidden space-y-5">
       <div class="flex justify-between items-center text-sm text-slate-400">
         <span>問題 <span id="q-num" class="text-white font-bold">1</span> / 10</span>
         <span>タイム: <span id="timer" class="text-indigo-400 font-mono font-bold">0.0</span> 秒</span>
       </div>
 
-      <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700 text-center">
-        <div id="question" class="text-2xl font-bold tracking-wider text-indigo-200">$(x+2)(x+3)$</div>
+      <!-- 問題カード -->
+      <div id="card" class="bg-slate-800 p-8 rounded-2xl border border-slate-700 text-center transition-all duration-200">
+        <div class="text-xs text-slate-400 mb-2" id="mode-label">展開しなさい</div>
+        <div id="question" class="text-2xl font-bold tracking-wider text-indigo-200">--</div>
       </div>
 
+      <!-- 入力エリア -->
       <div class="space-y-3">
-        <input type="text" id="answer-input" placeholder="答えを入力" class="w-full py-3 px-4 bg-slate-800 border border-slate-600 rounded-xl text-center text-xl font-mono text-white focus:outline-none focus:border-indigo-500">
+        <input type="text" id="answer-input" placeholder="答えを入力 (例: x^2+5x+6)" class="w-full py-3 px-4 bg-slate-800 border border-slate-600 rounded-xl text-center text-lg font-mono text-white focus:outline-none focus:border-indigo-500" autocomplete="off">
         <button onclick="checkAnswer()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
-          回答する
+          回答する (Enter)
         </button>
       </div>
+
+      <!-- フィードバック表示 -->
+      <div id="feedback" class="text-center font-bold h-6 text-sm"></div>
     </div>
 
     <!-- 結果・ダッシュボード画面 -->
@@ -67,6 +73,10 @@
         <div class="flex justify-between border-b border-slate-700 pb-2">
           <span class="text-slate-400">総プレイ回数</span>
           <span id="total-plays" class="font-bold">0 回</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-700 pb-2">
+          <span class="text-slate-400">ベストタイム</span>
+          <span id="best-time" class="font-bold text-emerald-400">-- 秒</span>
         </div>
         <div class="flex justify-between border-b border-slate-700 pb-2">
           <span class="text-slate-400">平均クリアタイム</span>
@@ -81,11 +91,88 @@
   </main>
 
   <script>
-    // 簡易アプリロジック
     let currentMode = '';
     let qIndex = 0;
     let startTime = 0;
     let timerInterval = null;
+    let currentQuestionData = null;
+
+    // キーボードのEnterキーで回答できるように設定
+    document.getElementById('answer-input').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        checkAnswer();
+      }
+    });
+
+    // 乱数生成ヘルパー (-9 ~ 9, 0除く)
+    function getRandomInt() {
+      let num = 0;
+      while (num === 0) {
+        num = Math.floor(Math.random() * 18) - 9;
+      }
+      return num;
+    }
+
+    // 展開用の問題生成 (x + a)(x + b)
+    function generateExpandQuestion() {
+      const a = getRandomInt();
+      const b = getRandomInt();
+      
+      const strA = a > 0 ? `+ ${a}` : `- ${Math.abs(a)}`;
+      const strB = b > 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
+      const questionText = `(x ${strA})(x ${strB})`;
+
+      // 展開結果: x^2 + (a+b)x + ab
+      const sum = a + b;
+      const prod = a * b;
+
+      let ansStr = 'x^2';
+      if (sum !== 0) {
+        if (sum === 1) ansStr += '+x';
+        else if (sum === -1) ansStr += '-x';
+        else if (sum > 0) ansStr += `+${sum}x`;
+        else ansStr += `${sum}x`;
+      }
+      if (prod > 0) ansStr += `+${prod}`;
+      else if (prod < 0) ansStr += `${prod}`;
+
+      return {
+        text: questionText,
+        answer: ansStr,
+        type: 'expand'
+      };
+    }
+
+    // 因数分解用の問題生成 x^2 + px + q
+    function generateFactorQuestion() {
+      const a = getRandomInt();
+      const b = getRandomInt();
+      const sum = a + b;
+      const prod = a * b;
+
+      let qStr = 'x^2';
+      if (sum !== 0) {
+        if (sum === 1) qStr += ' + x';
+        else if (sum === -1) qStr += ' - x';
+        else if (sum > 0) qStr += ` + ${sum}x`;
+        else qStr += ` - ${Math.abs(sum)}x`;
+      }
+      if (prod > 0) qStr += ` + ${prod}`;
+      else if (prod < 0) qStr += ` - ${Math.abs(prod)}`;
+
+      const strA = a > 0 ? `+${a}` : `${a}`;
+      const strB = b > 0 ? `+${b}` : `${b}`;
+      
+      // パターン1: (x+a)(x+b), パターン2: (x+b)(x+a)
+      const ans1 = `(x${strA})(x${strB})`;
+      const ans2 = `(x${strB})(x${strA})`;
+
+      return {
+        text: qStr,
+        answerValid: [ans1, ans2],
+        type: 'factor'
+      };
+    }
 
     function startGame(mode) {
       currentMode = mode;
@@ -93,31 +180,77 @@
       document.getElementById('mode-select').classList.add('hidden');
       document.getElementById('game-screen').classList.remove('hidden');
       document.getElementById('q-num').innerText = qIndex;
+      document.getElementById('mode-label').innerText = mode === 'expand' ? '展開しなさい' : '因数分解しなさい';
+      
       startTime = Date.now();
       timerInterval = setInterval(() => {
         document.getElementById('timer').innerText = ((Date.now() - startTime) / 1000).toFixed(1);
       }, 100);
+
       nextQuestion();
     }
 
     function nextQuestion() {
-      const q = currentMode === 'expand' ? '(x + 3)(x + 4)' : 'x² + 7x + 12';
-      document.getElementById('question').innerText = q;
+      document.getElementById('feedback').innerText = '';
       document.getElementById('answer-input').value = '';
+      document.getElementById('answer-input').focus();
+
+      if (currentMode === 'expand') {
+        currentQuestionData = generateExpandQuestion();
+      } else {
+        currentQuestionData = generateFactorQuestion();
+      }
+
+      document.getElementById('question').innerText = currentQuestionData.text;
+    }
+
+    // 入力文字を標準化（空白削除、小文字化）
+    function normalize(str) {
+      return str.replace(/\s+/g, '').toLowerCase();
     }
 
     function checkAnswer() {
-      if (qIndex < 10) {
-        qIndex++;
-        document.getElementById('q-num').innerText = qIndex;
-        nextQuestion();
+      const userAns = normalize(document.getElementById('answer-input').value);
+      if (!userAns) return;
+
+      let isCorrect = false;
+
+      if (currentQuestionData.type === 'expand') {
+        isCorrect = (userAns === normalize(currentQuestionData.answer));
       } else {
-        clearInterval(timerInterval);
-        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-        saveRecord(elapsed);
-        alert(`クリア！ タイム: ${elapsed}秒`);
-        showHome();
+        isCorrect = currentQuestionData.answerValid.some(ans => userAns === normalize(ans));
       }
+
+      const feedbackEl = document.getElementById('feedback');
+
+      if (isCorrect) {
+        feedbackEl.className = 'text-center font-bold h-6 text-sm text-emerald-400';
+        feedbackEl.innerText = '⭕ 正解！';
+        
+        setTimeout(() => {
+          if (qIndex < 10) {
+            qIndex++;
+            document.getElementById('q-num').innerText = qIndex;
+            nextQuestion();
+          } else {
+            finishGame();
+          }
+        }, 500);
+      } else {
+        feedbackEl.className = 'text-center font-bold h-6 text-sm text-rose-400';
+        const correctShow = currentQuestionData.type === 'expand' 
+          ? currentQuestionData.answer 
+          : currentQuestionData.answerValid[0];
+        feedbackEl.innerText = `❌ 不正解！ 正解: ${correctShow}`;
+      }
+    }
+
+    function finishGame() {
+      clearInterval(timerInterval);
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      saveRecord(elapsed);
+      alert(`🎉 10問クリア！ タイム: ${elapsed}秒`);
+      showHome();
     }
 
     function saveRecord(time) {
@@ -132,7 +265,9 @@
       let records = JSON.parse(localStorage.getItem('math_records') || '[]');
       document.getElementById('total-plays').innerText = `${records.length} 回`;
       if (records.length > 0) {
+        const best = Math.min(...records).toFixed(1);
         const avg = (records.reduce((a, b) => a + b, 0) / records.length).toFixed(1);
+        document.getElementById('best-time').innerText = `${best} 秒`;
         document.getElementById('avg-time').innerText = `${avg} 秒`;
       }
     }
