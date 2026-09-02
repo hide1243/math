@@ -1,998 +1,543 @@
 <!DOCTYPE html>
-<html lang="ja" class="light">
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>展開・因数分解 | Math Speed Training</title>
-  
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" id="dynamic-favicon" type="image/png">
-  <link rel="apple-touch-icon" id="apple-icon">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Math Speed">
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
-            mono: ['"SF Mono"', 'Consolas', 'monospace']
-          }
-        }
-      }
-    }
-  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数学スピードトレ</title>
   <style>
-    body { user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg: #f3f4f6;
+      --card-bg: #ffffff;
+      --text: #1f2937;
+      --correct: #10b981;
+      --wrong: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+    .container { width: 100%; max-width: 600px; background: var(--card-bg); padding: 24px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); position: relative; overflow: hidden; }
+
+    /* ヘッダー＆コントロール */
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    h1 { font-size: 1.3rem; color: var(--primary); font-weight: 800; }
+    .header-btns { display: flex; gap: 8px; }
+
+    .control-panel { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; background: #f9fafb; padding: 12px; border-radius: 10px; border: 1px solid #e5e7eb; }
+    .select-group { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: bold; color: #4b5563; }
+    select { padding: 6px 10px; border-radius: 6px; border: 1px solid #d1d5db; background: white; font-size: 0.85rem; }
+
+    .status-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: bold; font-size: 0.95rem; }
+    .combo-badge { background: var(--warning); color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.85rem; transition: transform 0.2s; display: none; }
+    .combo-badge.pop { transform: scale(1.25); }
+
+    /* 問題カード */
+    .card { background: #fafafa; border: 2px solid #e5e7eb; border-radius: 12px; padding: 35px 20px; text-align: center; margin-bottom: 20px; position: relative; }
+    .problem-text { font-size: 1.8rem; font-weight: bold; letter-spacing: 1px; margin-top: 5px; }
+    .category-tag { position: absolute; top: 10px; left: 12px; font-size: 0.75rem; background: #e0e7ff; color: var(--primary); padding: 3px 8px; border-radius: 6px; font-weight: bold; }
+
+    /* 選択肢モード UI */
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn-option { background: var(--card-bg); border: 2px solid #e5e7eb; padding: 14px; font-size: 1.1rem; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-weight: bold; }
+    .btn-option:hover { border-color: var(--primary); background: #f0fdf4; }
+    .btn-option.correct { background: var(--correct) !important; color: white; border-color: var(--correct); }
+    .btn-option.wrong { background: var(--wrong) !important; color: white; border-color: var(--wrong); }
+
+    /* キーボード入力モード UI */
+    .keyboard-input-area { display: none; flex-direction: column; gap: 12px; }
+    .input-display { font-size: 1.4rem; padding: 12px; border: 2px solid #d1d5db; border-radius: 8px; text-align: center; background: white; min-height: 52px; font-weight: bold; letter-spacing: 1px; }
+    .virtual-keyboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .btn-key { padding: 14px; font-size: 1.1rem; font-weight: bold; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; }
+    .btn-key:active { background: #e5e7eb; }
+    .btn-key.action { background: #e0e7ff; color: var(--primary); }
+    .btn-key.submit { background: var(--primary); color: white; grid-column: span 2; }
+
+    /* ボタン類 */
+    .btn-secondary { background: #e5e7eb; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; }
+    .btn-secondary:hover { background: #d1d5db; }
+    .btn-primary { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.2s; }
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    /* モーダル共通 */
+    .modal { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); padding: 24px; flex-direction: column; z-index: 10; overflow-y: auto; }
+    .modal.active { display: flex; }
+    .modal h2 { margin-bottom: 16px; text-align: center; color: var(--primary); font-size: 1.4rem; }
+
+    /* 公式集・グラフ・学習ダッシュボード */
+    .formula-item, .stat-item, .dash-card { background: #f9fafb; border: 1px solid #e5e7eb; padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; }
+    .formula-title { font-weight: bold; font-size: 0.85rem; color: #6b7280; }
+    .formula-body { font-size: 1.1rem; font-weight: bold; margin-top: 4px; color: var(--text); }
+
+    .stat-bar-container { background: #e5e7eb; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 6px; }
+    .stat-bar { background: var(--primary); height: 100%; width: 0%; transition: width 0.5s ease; }
+
+    .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+    .dash-card { text-align: center; padding: 15px; }
+    .dash-val { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+
+    /* 紙吹雪 Canvas */
+    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; }
+
+    /* 印刷スタイル */
     @media print {
-      .no-print { display: none !important; }
-      body { background: white !important; color: black !important; }
-      .print-card { border: 1px solid #e2e8f0 !important; background: white !important; color: black !important; }
-    }
-    @keyframes popIn {
-      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
-      50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.9; }
-      100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
-    }
-    .animate-pop {
-      animation: popIn 0.5s ease-out forwards;
-    }
-    input[type="text"] {
-      font-size: 18px !important;
+      body * { visibility: hidden; }
+      #printArea, #printArea * { visibility: visible; }
+      #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+      .print-page { page-break-after: always; }
     }
   </style>
-
-  <script>
-    (function() {
-      function createIcon() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 512;
-        canvas.height = 512;
-        const ctx = canvas.getContext('2d');
-
-        const grad = ctx.createLinearGradient(0, 0, 512, 512);
-        grad.addColorStop(0, '#4f46e5');
-        grad.addColorStop(1, '#9333ea');
-        ctx.fillStyle = grad;
-        
-        const radius = 110;
-        ctx.beginPath();
-        ctx.moveTo(radius, 0);
-        ctx.lineTo(512 - radius, 0);
-        ctx.quadraticCurveTo(512, 0, 512, radius);
-        ctx.lineTo(512, 512 - radius);
-        ctx.quadraticCurveTo(512, 512, 512 - radius, 512);
-        ctx.lineTo(radius, 512);
-        ctx.quadraticCurveTo(0, 512, 0, 512 - radius);
-        ctx.lineTo(0, radius);
-        ctx.quadraticCurveTo(0, 0, radius, 0);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '900 240px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-        ctx.shadowBlur = 20;
-        ctx.fillText('Σ', 230, 260);
-
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = '#f59e0b';
-        ctx.font = '900 130px sans-serif';
-        ctx.fillText('⚡', 360, 210);
-
-        const iconUrl = canvas.toDataURL('image/png');
-        
-        const fav = document.getElementById('dynamic-favicon');
-        const app = document.getElementById('apple-icon');
-        if (fav) fav.href = iconUrl;
-        if (app) app.href = iconUrl;
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', createIcon);
-      } else {
-        createIcon();
-      }
-    })();
-  </script>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+<body>
 
-  <header class="no-print bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
-    <div class="max-w-xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2 cursor-pointer" onclick="confirmQuit()">
-        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-black text-lg shadow-md shadow-indigo-500/20">
-          ∑
-        </div>
-        <span class="font-bold text-lg tracking-tight text-slate-900 dark:text-white">Math Speed</span>
-      </div>
-      
-      <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition active:scale-95">
-        <span id="theme-icon" class="text-xl leading-none">🌙</span>
-      </button>
+<div class="container">
+  <canvas id="confettiCanvas"></canvas>
+
+  <header>
+    <h1>数学スピードトレ</h1>
+    <div class="header-btns">
+      <button class="btn-secondary" id="btnDash">📊 記録</button>
+      <button class="btn-secondary" id="btnFormula">📖 公式集</button>
     </div>
   </header>
 
-  <main class="flex-1 flex flex-col items-center justify-center p-4 max-w-xl mx-auto w-full relative">
-    
-    <div id="result-overlay" class="fixed top-1/2 left-1/2 pointer-events-none z-50 text-8xl font-black hidden"></div>
+  <div class="control-panel">
+    <div class="select-group">
+      <label>難易度:</label>
+      <select id="diffSelect">
+        <option value="easy">初級（基本展開）</option>
+        <option value="mid" selected>中級（標準展開・因数分解）</option>
+        <option value="hard">上級（たすき掛け・発展）</option>
+      </select>
+    </div>
+    <div class="select-group">
+      <label>入力:</label>
+      <select id="modeSelect">
+        <option value="choice">4択選択</option>
+        <option value="key">キーボード入力</option>
+      </select>
+    </div>
+  </div>
 
-    <div id="mode-select" class="w-full space-y-5">
-      
-      <div class="text-center space-y-1">
-        <h1 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">展開・因数分解</h1>
-        <p class="text-xs font-medium text-slate-500 dark:text-slate-400">難易度と解答方式を選んでスタート！</p>
-      </div>
+  <div class="status-bar">
+    <span>問 <span id="qNum">1</span>/10</span>
+    <span id="comboBadge" class="combo-badge">0 Combo!</span>
+  </div>
 
-      <!-- 入力スタイルの切替タブ -->
-      <div class="bg-indigo-50 dark:bg-slate-900/80 p-1.5 rounded-2xl border border-indigo-100/80 dark:border-slate-800 space-y-1">
-        <div class="text-[10px] font-bold text-indigo-500/90 dark:text-indigo-400 text-center uppercase tracking-wider">解答スタイル</div>
-        <div class="flex gap-1.5">
-          <button id="input-style-choice" onclick="setInputStyle('choice')" class="flex-1 py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1">
-            <span>🔘 選択式 (4択)</span>
-          </button>
-          <button id="input-style-keyboard" onclick="setInputStyle('keyboard')" class="flex-1 py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1">
-            <span>⌨️ キーボード</span>
-          </button>
-        </div>
-      </div>
-      
-      <!-- 難易度切替 -->
-      <div class="bg-slate-200/70 dark:bg-slate-800/60 p-1.5 rounded-2xl flex gap-1.5 border border-slate-300/40 dark:border-slate-700/40">
-        <button id="diff-easy" onclick="setDifficulty('easy')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all">初級</button>
-        <button id="diff-normal" onclick="setDifficulty('normal')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all">中級</button>
-        <button id="diff-hard" onclick="setDifficulty('hard')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all">上級 (構造・変形)</button>
-      </div>
-
-      <div class="space-y-2.5">
-        <button onclick="startGame('expand')" class="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-indigo-500/25 border-b-4 border-indigo-800 transition active:border-b-0 active:translate-y-1 flex items-center justify-between">
-          <span>⚡ 展開スピードトレ</span>
-          <span class="text-xs font-normal opacity-80">10問計測</span>
-        </button>
-        <button onclick="startGame('factor')" class="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-emerald-500/25 border-b-4 border-emerald-800 transition active:border-b-0 active:translate-y-1 flex items-center justify-between">
-          <span>⚡ 因数分解スピードトレ</span>
-          <span class="text-xs font-normal opacity-80">10問計測</span>
-        </button>
-        <button id="retry-btn" onclick="startRetryMode()" class="w-full py-3.5 px-6 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl font-bold text-sm shadow-lg shadow-rose-500/20 border-b-4 border-rose-800 transition active:border-b-0 active:translate-y-1 flex items-center justify-between">
-          <span>🔥 ミス問題の復習</span>
-          <span id="mistake-count" class="text-xs font-bold bg-white/20 px-2 py-0.5 rounded-full">0問</span>
-        </button>
-      </div>
-
-      <div class="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2.5">
-        <button onclick="showWorksheet()" class="w-full py-3.5 px-6 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 rounded-2xl font-bold text-sm transition flex items-center justify-center gap-2">
-          <span>📝 問題集モード（解説付き）</span>
-        </button>
-        <button onclick="showDashboard()" class="w-full py-3.5 px-6 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-2xl font-bold text-sm transition flex items-center justify-center gap-2">
-          <span>📊 成績ダッシュボード</span>
-        </button>
-      </div>
+  <main>
+    <div class="card">
+      <span class="category-tag" id="categoryTag">カテゴリ</span>
+      <div class="problem-text" id="problemText">問題</div>
     </div>
 
-    <div id="game-screen" class="w-full hidden space-y-4">
-      <div class="flex justify-between items-center text-xs font-semibold text-slate-500 dark:text-slate-400">
-        <button onclick="confirmQuit()" class="flex items-center gap-1 text-slate-400 hover:text-rose-500 transition font-bold py-1 px-2 rounded-lg hover:bg-rose-500/10">
-          ✕ 退出
-        </button>
-        <span class="bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20">
-          <span id="diff-label" class="font-bold">中級</span>
-        </span>
-        <span class="text-slate-700 dark:text-slate-300">問題 <span id="q-num" class="text-indigo-600 dark:text-indigo-400 font-bold text-sm">1</span> / <span id="q-total">10</span></span>
-        <span class="font-mono text-sm bg-slate-200 dark:bg-slate-800 px-3 py-1 rounded-full text-slate-800 dark:text-slate-200"><span id="timer">0.0</span>s</span>
-      </div>
+    <!-- 4択UI -->
+    <div class="options" id="optionsContainer"></div>
 
-      <div id="card" class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-lg shadow-slate-200/40 dark:shadow-none text-center space-y-1.5">
-        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider" id="mode-label">展開しなさい</div>
-        <div id="question" class="text-xl font-black tracking-wide text-slate-900 dark:text-white py-1 leading-relaxed">--</div>
-      </div>
-
-      <div id="hint-box" class="hidden bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 p-3 rounded-2xl text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed font-medium">
-        💡 <span id="hint-text"></span>
-      </div>
-
-      <!-- 解答エリア：キーボード入力用 -->
-      <div id="keyboard-answer-area" class="space-y-3">
-        <input type="text" id="answer-input" placeholder="答えを入力" class="w-full py-3.5 px-4 bg-white dark:bg-slate-900 border-2 border-indigo-500/50 dark:border-indigo-500/40 rounded-2xl text-center text-lg font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-600 shadow-inner transition tracking-wider" autocomplete="off" inputmode="text">
+    <!-- キーボード入力UI -->
+    <div class="keyboard-input-area" id="keyInputArea">
+      <div class="input-display" id="inputDisplay"></div>
+      <div class="virtual-keyboard">
+        <button class="btn-key" onclick="pressKey('x')">x</button>
+        <button class="btn-key" onclick="pressKey('y')">y</button>
+        <button class="btn-key" onclick="pressKey('²')">²</button>
+        <button class="btn-key action" onclick="pressKey('DEL')">BS</button>
         
-        <div class="grid grid-cols-6 gap-1.5 pt-1">
-          <button onclick="appendKey('a')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">a</button>
-          <button onclick="appendKey('b')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">b</button>
-          <button onclick="appendKey('c')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">c</button>
-          <button onclick="appendKey('x')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">x</button>
-          <button onclick="appendKey('y')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">y</button>
-          <button onclick="appendKey('z')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">z</button>
+        <button class="btn-key" onclick="pressKey('+')">+</button>
+        <button class="btn-key" onclick="pressKey('-')">-</button>
+        <button class="btn-key" onclick="pressKey('(')">(</button>
+        <button class="btn-key" onclick="pressKey(')')">)</button>
 
-          <button onclick="appendKey('²')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">²</button>
-          <button onclick="appendKey('³')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">³</button>
-          <button onclick="appendKey('⁴')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">⁴</button>
-          <button onclick="appendKey('+')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">+</button>
-          <button onclick="appendKey('-')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">-</button>
-          <button onclick="backspaceKey()" class="py-2.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold rounded-xl text-sm transition active:scale-95">⌫</button>
+        <button class="btn-key" onclick="pressKey('1')">1</button>
+        <button class="btn-key" onclick="pressKey('2')">2</button>
+        <button class="btn-key" onclick="pressKey('3')">3</button>
+        <button class="btn-key" onclick="pressKey('4')">4</button>
 
-          <button onclick="appendKey('(')" class="col-span-3 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">(</button>
-          <button onclick="appendKey(')')" class="col-span-3 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">)</button>
-        </div>
+        <button class="btn-key" onclick="pressKey('5')">5</button>
+        <button class="btn-key" onclick="pressKey('6')">6</button>
+        <button class="btn-key" onclick="pressKey('7')">7</button>
+        <button class="btn-key" onclick="pressKey('8')">8</button>
 
-        <button onclick="checkAnswer()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-indigo-500/25 border-b-4 border-indigo-800 transition active:border-b-0 active:translate-y-1 mt-2">
-          回答する (Enter)
-        </button>
-      </div>
-
-      <!-- 解答エリア：選択式（4択・コンパクト2x2配置） -->
-      <div id="choice-answer-area" class="grid grid-cols-2 gap-2 hidden">
-        <button onclick="selectChoice(0)" id="choice-0" class="py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 transition active:scale-95 shadow-sm text-center truncate">--</button>
-        <button onclick="selectChoice(1)" id="choice-1" class="py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 transition active:scale-95 shadow-sm text-center truncate">--</button>
-        <button onclick="selectChoice(2)" id="choice-2" class="py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 transition active:scale-95 shadow-sm text-center truncate">--</button>
-        <button onclick="selectChoice(3)" id="choice-3" class="py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 transition active:scale-95 shadow-sm text-center truncate">--</button>
-      </div>
-
-      <div id="feedback" class="text-center font-bold h-6 text-sm"></div>
-    </div>
-
-    <div id="worksheet-screen" class="w-full hidden space-y-6">
-      <div class="no-print flex flex-col gap-4">
-        <div class="flex items-center justify-between">
-          <button onclick="showHome()" class="text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition py-1 px-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg">
-            ← ホームへ
-          </button>
-          <div class="text-center">
-            <h2 class="text-xl font-bold text-slate-900 dark:text-white">📝 問題集モード</h2>
-          </div>
-          <div class="w-16"></div>
-        </div>
-        
-        <div class="flex gap-2">
-          <button onclick="generateSheet('expand')" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs shadow-sm">展開 10問</button>
-          <button onclick="generateSheet('factor')" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs shadow-sm">因数分解 10問</button>
-          <button onclick="generateSheet('mix')" class="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold text-xs shadow-sm">ミックス 10問</button>
-        </div>
-      </div>
-
-      <div id="sheet-list" class="space-y-3"></div>
-
-      <div class="no-print space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-        <button onclick="toggleAnswers()" id="toggle-ans-btn" class="w-full py-3.5 bg-amber-500 text-white rounded-2xl font-bold text-sm shadow-md transition">
-          答えと解説を表示する
-        </button>
-        <button onclick="window.print()" class="w-full py-3.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl font-bold text-sm transition">
-          🖨️ 印刷する（紙に出力）
-        </button>
-        <button onclick="showHome()" class="w-full py-3.5 bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 rounded-2xl font-bold text-sm transition">
-          ホームに戻る
-        </button>
+        <button class="btn-key" onclick="pressKey('9')">9</button>
+        <button class="btn-key" onclick="pressKey('0')">0</button>
+        <button class="btn-key submit" onclick="submitKeyAnswer()">回答する</button>
       </div>
     </div>
-
-    <div id="dashboard-screen" class="w-full hidden space-y-6">
-      <div class="text-center">
-        <h2 class="text-xl font-bold text-slate-900 dark:text-white">📊 成績ダッシュボード</h2>
-        <p class="text-xs text-slate-500">これまでのトレーニング記録</p>
-      </div>
-
-      <div id="stats" class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-none space-y-4">
-        <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
-          <span class="text-xs font-semibold text-slate-500">解いた問題の総数</span>
-          <span id="total-questions" class="font-bold text-indigo-600 dark:text-indigo-400 text-lg">0 問</span>
-        </div>
-        <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
-          <span class="text-xs font-semibold text-slate-500">総クリア回数</span>
-          <span id="total-plays" class="font-bold text-slate-900 dark:text-white text-base">0 回</span>
-        </div>
-        <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
-          <span class="text-xs font-semibold text-slate-500">ベストタイム</span>
-          <span id="best-time" class="font-black text-emerald-600 dark:text-emerald-400 text-lg">-- 秒</span>
-        </div>
-        <div class="flex justify-between items-center pb-1">
-          <span class="text-xs font-semibold text-slate-500">平均クリアタイム</span>
-          <span id="avg-time" class="font-bold text-indigo-600 dark:text-indigo-400 text-base">0.0 秒</span>
-        </div>
-      </div>
-
-      <button onclick="showHome()" class="w-full py-3.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl font-bold text-sm transition">
-        ホームに戻る
-      </button>
-    </div>
-
   </main>
 
-  <script>
-    let currentMode = '';
-    let currentDifficulty = 'normal';
-    let inputStyle = 'choice'; // 'choice' または 'keyboard'
-    let qIndex = 0;
-    let totalQuestionsInGame = 10;
-    let startTime = 0;
-    let timerInterval = null;
-    let currentQuestionData = null;
-    let currentChoices = [];
-    let retryQuestions = [];
-    let isRetryMode = false;
-    let currentSheetData = [];
-    let showAnswersFlag = false;
-    let recentQuestions = [];
+  <!-- 公式集モーダル -->
+  <div class="modal" id="formulaModal">
+    <h2>📖 公式集</h2>
+    <div style="flex:1; overflow-y:auto; margin-bottom:15px;">
+      <div class="formula-item">
+        <div class="formula-title">2乗の展開</div>
+        <div class="formula-body">(a + b)² = a² + 2ab + b²</div>
+        <div class="formula-body">(a - b)² = a² - 2ab + b²</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-title">和と差の積</div>
+        <div class="formula-body">(a + b)(a - b) = a² - b²</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-title">x² + (a+b)x + ab の形</div>
+        <div class="formula-body">(x + a)(x + b) = x² + (a + b)x + ab</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-title">たすき掛け (因数分解)</div>
+        <div class="formula-body">acx² + (ad+bc)x + bd = (ax + b)(cx + d)</div>
+      </div>
+      <div class="formula-item">
+        <div class="formula-title">3乗の展開・因数分解</div>
+        <div class="formula-body">(a + b)³ = a³ + 3a²b + 3ab² + b³</div>
+        <div class="formula-body">a³ + b³ = (a + b)(a² - ab + b²)</div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="closeModal('formulaModal')">閉じる</button>
+  </div>
 
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  <!-- ダッシュボードモーダル -->
+  <div class="modal" id="dashModal">
+    <h2>📊 学習記録ダッシュボード</h2>
+    <div class="dash-grid">
+      <div class="dash-card">
+        <div class="formula-title">総回答数</div>
+        <div class="dash-val" id="dashTotal">0</div>
+      </div>
+      <div class="dash-card">
+        <div class="formula-title">通算正答率</div>
+        <div class="dash-val" id="dashAcc">0%</div>
+      </div>
+    </div>
+    <button class="btn-primary" style="margin-bottom:10px; background:#10b981;" onclick="printPrintout()">🖨️ 間違えた問題プリント作成</button>
+    <button class="btn-primary" onclick="closeModal('dashModal')">閉じる</button>
+  </div>
 
-    function playSound(type) {
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
+  <!-- リザルトモーダル（弱点分析つき） -->
+  <div class="modal" id="resultModal">
+    <h2>結果</h2>
+    <p style="text-align:center; font-size: 1.2rem; margin-bottom: 15px;">
+      スコア: <strong id="scoreText" style="color:var(--primary); font-size:1.6rem;">0</strong> / 10
+    </p>
+    
+    <h3 style="font-size: 0.95rem; margin-bottom: 10px; color:#4b5563;">📊 分野別・理解度（弱点分析）</h3>
+    <div id="statsList" style="flex:1; overflow-y:auto; margin-bottom:15px;"></div>
 
-      const now = audioCtx.currentTime;
-      if (type === 'correct') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(523.25, now);
-        osc.frequency.setValueAtTime(659.25, now + 0.1);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-        osc.start(now);
-        osc.stop(now + 0.3);
-      } else {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(150, now);
-        osc.frequency.setValueAtTime(110, now + 0.1);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-        osc.start(now);
-        osc.stop(now + 0.3);
-      }
-    }
+    <div style="display:flex; gap:10px;">
+      <button class="btn-primary" id="btnReview" style="background:#f59e0b; display:none;" onclick="startReview()">🔥 ミスのみ復習</button>
+      <button class="btn-primary" onclick="initGame()">もう一度挑戦</button>
+    </div>
+  </div>
+</div>
 
-    function triggerVisualFeedback(isCorrect) {
-      const overlay = document.getElementById('result-overlay');
-      overlay.innerText = isCorrect ? '⭕' : '❌';
-      overlay.className = `fixed top-1/2 left-1/2 pointer-events-none z-50 text-8xl font-black animate-pop ${isCorrect ? 'text-emerald-500' : 'text-rose-500'}`;
-      overlay.classList.remove('hidden');
+<!-- 印刷用領域 -->
+<div id="printArea" style="display:none;"></div>
 
-      setTimeout(() => {
-        overlay.classList.add('hidden');
-      }, 450);
-    }
+<script>
+  // --- 1. Web Audio API (効果音生成) ---
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playSound(type) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
 
-    function initTheme() {
-      const savedTheme = localStorage.getItem('math_theme') || 'light';
-      if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-        document.getElementById('theme-icon').innerText = '☀️';
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.getElementById('theme-icon').innerText = '🌙';
-      }
-    }
-
-    function toggleTheme() {
-      const isDark = document.documentElement.classList.toggle('dark');
-      localStorage.setItem('math_theme', isDark ? 'dark' : 'light');
-      document.getElementById('theme-icon').innerText = isDark ? '☀️' : '🌙';
-    }
-
-    initTheme();
-
-    function setInputStyle(style) {
-      inputStyle = style;
-      const choiceBtn = document.getElementById('input-style-choice');
-      const kbBtn = document.getElementById('input-style-keyboard');
-      
-      const activeClass = 'bg-indigo-600 text-white shadow-sm font-bold';
-      const inactiveClass = 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium';
-
-      choiceBtn.className = `flex-1 py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 ${style === 'choice' ? activeClass : inactiveClass}`;
-      kbBtn.className = `flex-1 py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 ${style === 'keyboard' ? activeClass : inactiveClass}`;
-    }
-
-    setInputStyle('choice');
-
-    document.getElementById('answer-input').addEventListener('keypress', function (e) {
-      if (e.key === 'Enter') checkAnswer();
-    });
-
-    function appendKey(char) {
-      const input = document.getElementById('answer-input');
-      input.value += char;
-      input.scrollLeft = input.scrollWidth;
-      input.focus();
-    }
-
-    function backspaceKey() {
-      const input = document.getElementById('answer-input');
-      input.value = input.value.slice(0, -1);
-      input.focus();
-    }
-
-    function updateMistakeBadge() {
-      const mistakes = JSON.parse(localStorage.getItem('math_mistakes') || '[]');
-      document.getElementById('mistake-count').innerText = `${mistakes.length}問`;
-      const retryBtn = document.getElementById('retry-btn');
-      if (mistakes.length === 0) {
-        retryBtn.classList.add('opacity-50', 'pointer-events-none');
-      } else {
-        retryBtn.classList.remove('opacity-50', 'pointer-events-none');
-      }
-    }
-
-    function setDifficulty(diff) {
-      currentDifficulty = diff;
-      const btnE = document.getElementById('diff-easy');
-      const btnN = document.getElementById('diff-normal');
-      const btnH = document.getElementById('diff-hard');
-
-      const activeClass = 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm font-black';
-      const inactiveClass = 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-semibold';
-
-      btnE.className = `flex-1 py-2.5 rounded-xl font-bold text-xs transition-all ${diff === 'easy' ? activeClass : inactiveClass}`;
-      btnN.className = `flex-1 py-2.5 rounded-xl font-bold text-xs transition-all ${diff === 'normal' ? activeClass : inactiveClass}`;
-      btnH.className = `flex-1 py-2.5 rounded-xl font-bold text-xs transition-all ${diff === 'hard' ? activeClass : inactiveClass}`;
-    }
-
-    setDifficulty('normal');
-
-    function getRandomNonZero(min, max) {
-      let n = 0;
-      while (n === 0) n = Math.floor(Math.random() * (max - min + 1)) + min;
-      return n;
-    }
-
-    function fmtTerm(coeff, varStr, isFirst = false) {
-      if (coeff === 0) return '';
-      let sign = coeff > 0 ? (isFirst ? '' : '+') : '-';
-      let abs = Math.abs(coeff);
-      let numStr = (abs === 1 && varStr !== '') ? '' : abs;
-      return `${sign}${numStr}${varStr}`;
-    }
-
-    function generateUniqueExpandQuestion() {
-      let q;
-      let maxTry = 10;
-      while (maxTry-- > 0) {
-        q = makeExpandData();
-        if (!recentQuestions.includes(q.text)) break;
-      }
-      recentQuestions.push(q.text);
-      if (recentQuestions.length > 15) recentQuestions.shift();
-      return q;
-    }
-
-    function makeExpandData() {
-      if (currentDifficulty === 'easy') {
-        const type = Math.floor(Math.random() * 3);
-        if (type === 0) {
-          const a = getRandomNonZero(-9, 9);
-          const b = getRandomNonZero(-9, 9);
-          const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)})(x ${b>0?'+ '+b:'- '+Math.abs(b)})`;
-          const ans = `x²${fmtTerm(a+b, 'x')}${fmtTerm(a*b, '')}`;
-          const dummy1 = `x²${fmtTerm(a-b, 'x')}${fmtTerm(a*b, '')}`;
-          const dummy2 = `x²${fmtTerm(a+b, 'x')}${fmtTerm(-a*b, '')}`;
-          const dummy3 = `x²${fmtTerm(a*b, 'x')}${fmtTerm(a+b, '')}`;
-          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '基本公式 (x+a)(x+b) = x²+(a+b)x+ab を使います。' };
-        } else if (type === 1) {
-          const a = getRandomNonZero(-9, 9);
-          const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)})²`;
-          const ans = `x²${fmtTerm(2*a, 'x')}${fmtTerm(a*a, '')}`;
-          const dummy1 = `x²${fmtTerm(a, 'x')}${fmtTerm(a*a, '')}`;
-          const dummy2 = `x²${fmtTerm(-2*a, 'x')}${fmtTerm(a*a, '')}`;
-          const dummy3 = `x²${fmtTerm(a*a, '')}`;
-          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '平方の公式 (x+a)² = x²+2ax+a² です。' };
-        } else {
-          const a = Math.floor(Math.random() * 9) + 1;
-          const qText = `(x + ${a})(x - ${a})`;
-          const ans = `x²${fmtTerm(-a*a, '')}`;
-          const dummy1 = `x²${fmtTerm(a*a, '')}`;
-          const dummy2 = `x²${fmtTerm(-2*a, 'x')}${fmtTerm(-a*a, '')}`;
-          const dummy3 = `x²${fmtTerm(2*a, 'x')}${fmtTerm(a*a, '')}`;
-          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '和と差の積 (x+a)(x-a) = x²-a² です。' };
-        }
-      } 
-      else if (currentDifficulty === 'normal') {
-        const type = Math.floor(Math.random() * 3);
-        if (type === 0) {
-          const a = Math.floor(Math.random() * 4) + 2;
-          const c = Math.floor(Math.random() * 3) + 1;
-          const b = getRandomNonZero(-6, 6);
-          const d = getRandomNonZero(-6, 6);
-          const qText = `(${fmtTerm(a,'x',true)} ${b>0?'+ '+b:'- '+Math.abs(b)})(${fmtTerm(c,'x',true)} ${d>0?'+ '+d:'- '+Math.abs(d)})`;
-          const ans = `${fmtTerm(a*c,'x²',true)}${fmtTerm(a*d+b*c,'x')}${fmtTerm(b*d,'')}`;
-          const dummy1 = `${fmtTerm(a*c,'x²',true)}${fmtTerm(a*b+c*d,'x')}${fmtTerm(b*d,'')}`;
-          const dummy2 = `${fmtTerm(a*c,'x²',true)}${fmtTerm(a*d-b*c,'x')}${fmtTerm(b*d,'')}`;
-          const dummy3 = `${fmtTerm(a+c,'x²',true)}${fmtTerm(a*d+b*c,'x')}${fmtTerm(b+d,'')}`;
-          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: 'たすき掛け展開 (ax+b)(cx+d) = acx²+(ad+bc)x+bd です。' };
-        } else if (type === 1) {
-          const a = Math.floor(Math.random() * 3) + 2;
-          const b = getRandomNonZero(-5, 5);
-          const qText = `(${fmtTerm(a,'x',true)} ${b>0?'+ '+b:'- '+Math.abs(b)})²`;
-          const ans = `${fmtTerm(a*a,'x²',true)}${fmtTerm(2*a*b,'x')}${fmtTerm(b*b,'')}`;
-          const dummy1 = `${fmtTerm(a*a,'x²',true)}${fmtTerm(a*b,'x')}${fmtTerm(b*b,'')}`;
-          const dummy2 = `${fmtTerm(a,'x²',true)}${fmtTerm(2*a*b,'x')}${fmtTerm(b*b,'')}`;
-          const dummy3 = `${fmtTerm(a*a,'x²',true)}${fmtTerm(-2*a*b,'x')}${fmtTerm(b*b,'')}`;
-          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '(ax+b)² の展開です。' };
-        } else {
-          const a = getRandomNonZero(-5, 5);
-          const b = getRandomNonZero(-5, 5);
-          const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)}y)(x ${b>0?'+ '+b:'- '+Math.abs(b)}y)`;
-          const ans = `x²${fmtTerm(a+b, 'xy')}${fmtTerm(a*b, 'y²')}`;
-          const dummy1 = `x²${fmtTerm(a-b, 'xy')}${fmtTerm(a*b, 'y²')}`;
-          const dummy2 = `x²${fmtTerm(a+b, 'xy')}${fmtTerm(-a*b, 'y²')}`;
-          const dummy3 = `x²${fmtTerm(a*b, 'xy')}${fmtTerm(a+b, 'y²')}`;
-          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '2変数yの和と積の展開です。' };
-        }
-      } 
-      else {
-        const generators = [
-          () => {
-            const a = getRandomNonZero(1, 3);
-            const b = a + getRandomNonZero(1, 2);
-            const c = a + 1;
-            const d = b - 1;
-            const qText = `(x + ${a})(x + ${b})(x + ${c})(x + ${d})`;
-            const sum = a + b;
-            const p1 = a * b;
-            const p2 = c * d;
-            const ans = `x⁴${fmtTerm(2*sum,'x³')}${fmtTerm(sum*sum + p1 + p2,'x²')}${fmtTerm(sum*(p1+p2),'x')}${fmtTerm(p1*p2,'')}`;
-            const dummy1 = `x⁴${fmtTerm(sum,'x³')}${fmtTerm(sum*sum + p1 + p2,'x²')}${fmtTerm(sum*(p1+p2),'x')}${fmtTerm(p1*p2,'')}`;
-            const dummy2 = `x⁴${fmtTerm(2*sum,'x³')}${fmtTerm(p1 + p2,'x²')}${fmtTerm(sum*(p1+p2),'x')}${fmtTerm(p1*p2,'')}`;
-            const dummy3 = `x⁴${fmtTerm(2*sum,'x³')}${fmtTerm(sum*sum + p1 + p2,'x²')}${fmtTerm(p1*p2,'')}`;
-            return {
-              text: qText,
-              answer: ans,
-              dummies: [dummy1, dummy2, dummy3],
-              type: '展開',
-              hint: `【定数項の和の組み替え】(x+${a})(x+${b}) と (x+${c})(x+${d}) でペアを作り、x²+${sum}x を A と置きます。`
-            };
-          },
-          () => {
-            return {
-              text: `(a + b + c)(ab + bc + ca)`,
-              answer: `a²b+ab²+b²c+bc²+c²a+ca²+3abc`,
-              dummies: [
-                `a²b+ab²+b²c+bc²+c²a+ca²+abc`,
-                `a²b+ab²+b²c+bc²+c²a+ca²`,
-                `a³+b³+c³+3abc`
-              ],
-              type: '展開',
-              hint: '【3変数対称式】1つの文字について整理して展開します。'
-            };
-          },
-          () => {
-            const k = getRandomNonZero(-4, 4);
-            const qText = `(x + y ${k>0?'+ '+k:'- '+Math.abs(k)})²`;
-            const ans = `x²+2xy+y²${fmtTerm(2*k,'x')}${fmtTerm(2*k,'y')}${fmtTerm(k*k,'')}`;
-            const dummy1 = `x²+xy+y²${fmtTerm(2*k,'x')}${fmtTerm(2*k,'y')}${fmtTerm(k*k,'')}`;
-            const dummy2 = `x²+2xy+y²${fmtTerm(k,'x')}${fmtTerm(k,'y')}${fmtTerm(k*k,'')}`;
-            const dummy3 = `x²+2xy+y²${fmtTerm(-2*k,'x')}${fmtTerm(-2*k,'y')}${fmtTerm(k*k,'')}`;
-            return {
-              text: qText,
-              answer: ans,
-              dummies: [dummy1, dummy2, dummy3],
-              type: '展開',
-              hint: '【(a+b+c)²の公式】a²+b²+c²+2ab+2bc+2ca を使います。'
-            };
-          }
-        ];
-        const choice = generators[Math.floor(Math.random() * generators.length)];
-        return choice();
-      }
-    }
-
-    function generateUniqueFactorQuestion() {
-      let q;
-      let maxTry = 10;
-      while (maxTry-- > 0) {
-        q = makeFactorData();
-        if (!recentQuestions.includes(q.text)) break;
-      }
-      recentQuestions.push(q.text);
-      if (recentQuestions.length > 15) recentQuestions.shift();
-      return q;
-    }
-
-    function makeFactorData() {
-      if (currentDifficulty === 'easy') {
-        const type = Math.floor(Math.random() * 3);
-        if (type === 0) {
-          const a = getRandomNonZero(-8, 8);
-          const b = getRandomNonZero(-8, 8);
-          const qText = `x²${fmtTerm(a+b,'x')}${fmtTerm(a*b,'')}`;
-          const strA = a > 0 ? `+${a}` : `${a}`;
-          const strB = b > 0 ? `+${b}` : `${b}`;
-          const ansShow = `(x${strA})(x${strB})`;
-          const dummy1 = `(x-${strA})(x${strB})`;
-          const dummy2 = `(x${strA})(x-${strB})`;
-          const dummy3 = `(x+${a+b})(x+${a*b})`;
-          return { text: qText, answerValid: [`(x${strA})(x${strB})`, `(x${strB})(x${strA})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '和と積から2数を見つける基本パターンです。' };
-        } else if (type === 1) {
-          const a = Math.floor(Math.random() * 8) + 2;
-          const qText = `x² - ${a*a}`;
-          const ansShow = `(x+${a})(x-${a})`;
-          const dummy1 = `(x-${a})²`;
-          const dummy2 = `(x+${a})²`;
-          const dummy3 = `(x+${a*a})(x-1)`;
-          return { text: qText, answerValid: [`(x+${a})(x-${a})`, `(x-${a})(x+${a})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '二乗の差 x²-a² = (x+a)(x-a) です。' };
-        } else {
-          const a = getRandomNonZero(-7, 7);
-          const qText = `x²${fmtTerm(2*a,'x')}${fmtTerm(a*a,'')}`;
-          const strA = a > 0 ? `+${a}` : `${a}`;
-          const ansShow = `(x${strA})²`;
-          const dummy1 = `(x-${strA})²`;
-          const dummy2 = `(x${strA})(x-${strA})`;
-          const dummy3 = `(x+2${strA})²`;
-          return { text: qText, answerValid: [`(x${strA})²`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '完全平方 (x+a)² の形です。' };
-        }
-      } 
-      else if (currentDifficulty === 'normal') {
-        const type = Math.floor(Math.random() * 3);
-        if (type === 0) {
-          const a = Math.floor(Math.random() * 3) + 2;
-          const c = Math.floor(Math.random() * 2) + 1;
-          const b = getRandomNonZero(-5, 5);
-          const d = getRandomNonZero(-5, 5);
-          const qText = `${fmtTerm(a*c,'x²',true)}${fmtTerm(a*d+b*c,'x')}${fmtTerm(b*d,'')}`;
-          const t1 = `${fmtTerm(a,'x',true)}${b>0?'+'+b:b}`;
-          const t2 = `${fmtTerm(c,'x',true)}${d>0?'+'+d:d}`;
-          const ansShow = `(${t1})(${t2})`;
-          const dummy1 = `(${fmtTerm(a,'x',true)}${b>0?'-'+b:'+'+Math.abs(b)})(${t2})`;
-          const dummy2 = `(${t1})(${fmtTerm(c,'x',true)}${d>0?'-'+d:'+'+Math.abs(d)})`;
-          const dummy3 = `(${fmtTerm(a*c,'x',true)}+1)(x${b*d>0?'+'+b*d:b*d})`;
-          return { text: qText, answerValid: [`(${t1})(${t2})`, `(${t2})(${t1})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: 'たすき掛けを使って因数分解します。' };
-        } else if (type === 1) {
-          const m = Math.floor(Math.random() * 4) + 2;
-          const a = getRandomNonZero(-5, 5);
-          const b = getRandomNonZero(-5, 5);
-          const qText = `${m}x²${fmtTerm(m*(a+b),'x')}${fmtTerm(m*a*b,'')}`;
-          const strA = a > 0 ? `+${a}` : `${a}`;
-          const strB = b > 0 ? `+${b}` : `${b}`;
-          const ansShow = `${m}(x${strA})(x${strB})`;
-          const dummy1 = `(x${strA})(${m}x${strB})`;
-          const dummy2 = `${m}(x-${strA})(x${strB})`;
-          const dummy3 = `(x${strA})(x${strB})`;
-          return { text: qText, answerValid: [`${m}(x${strA})(x${strB})`, `${m}(x${strB})(x${strA})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '【共通因数】まず全項を共通因数で括り出します。' };
-        } else {
-          const a = getRandomNonZero(-5, 5);
-          const b = getRandomNonZero(-5, 5);
-          const qText = `x²${fmtTerm(a+b,'xy')}${fmtTerm(a*b,'y²')}`;
-          const strA = a > 0 ? `+${a}` : `${a}`;
-          const strB = b > 0 ? `+${b}` : `${b}`;
-          const ansShow = `(x${strA}y)(x${strB}y)`;
-          const dummy1 = `(x-${strA}y)(x${strB}y)`;
-          const dummy2 = `(x${strA}y)(x-${strB}y)`;
-          const dummy3 = `(x+y)(x${a*b>0?'+'+a*b:a*b}y)`;
-          return { text: qText, answerValid: [`(x${strA}y)(x${strB}y)`, `(x${strB}y)(x${strA}y)`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: 'yを含んだ形の和と積の因数分解です。' };
-        }
-      } 
-      else {
-        const generators = [
-          () => {
-            return {
-              text: `x⁴ + 4y⁴`,
-              answerValid: [`(x²+2xy+2y²)(x²-2xy+2y²)`, `(x²-2xy+2y²)(x²+2xy+2y²)`],
-              answerShow: `(x²+2xy+2y²)(x²-2xy+2y²)`,
-              dummies: [
-                `(x²+2y²)(x²-2y²)`,
-                `(x²+4xy+2y²)(x²-4xy+2y²)`,
-                `(x²+2xy-2y²)(x²-2xy-2y²)`
-              ],
-              type: '因数分解',
-              hint: '【数を足して引く】4x²y² を足して引くことで (x²+2y²)² - (2xy)² を作ります。'
-            };
-          },
-          () => {
-            return {
-              text: `2x² + 5xy + 2y² + 4x + 5y + 2`,
-              answerValid: [`(x+2y+1)(2x+y+2)`, `(2x+y+2)(x+2y+1)`],
-              answerShow: `(x+2y+1)(2x+y+2)`,
-              dummies: [
-                `(x+2y+2)(2x+y+1)`,
-                `(x-2y+1)(2x-y+2)`,
-                `(2x+2y+1)(x+y+2)`
-              ],
-              type: '因数分解',
-              hint: '【降べきの順】x について整理し、定数項を因数分解してから全体のたすき掛けを行います。'
-            };
-          }
-        ];
-        const choice = generators[Math.floor(Math.random() * generators.length)];
-        return choice();
-      }
-    }
-
-    function shuffleArray(array) {
-      const arr = [...array];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-
-    function startGame(mode) {
-      isRetryMode = false;
-      currentMode = mode;
-      qIndex = 1;
-      totalQuestionsInGame = 10;
-      setupGameUI();
-      nextQuestion();
-    }
-
-    function startRetryMode() {
-      const mistakes = JSON.parse(localStorage.getItem('math_mistakes') || '[]');
-      if (mistakes.length === 0) return;
-
-      isRetryMode = true;
-      retryQuestions = mistakes;
-      qIndex = 1;
-      totalQuestionsInGame = retryQuestions.length;
-      setupGameUI('復習');
-      nextQuestion();
-    }
-
-    function setupGameUI(diffOverride) {
-      document.getElementById('mode-select').classList.add('hidden');
-      document.getElementById('game-screen').classList.remove('hidden');
-      document.getElementById('q-num').innerText = qIndex;
-      document.getElementById('q-total').innerText = totalQuestionsInGame;
-      
-      const diffNames = { easy: '初級', normal: '中級', hard: '上級 (構造・変形)' };
-      document.getElementById('diff-label').innerText = diffOverride || diffNames[currentDifficulty];
-
-      if (inputStyle === 'choice') {
-        document.getElementById('choice-answer-area').classList.remove('hidden');
-        document.getElementById('keyboard-answer-area').classList.add('hidden');
-      } else {
-        document.getElementById('choice-answer-area').classList.add('hidden');
-        document.getElementById('keyboard-answer-area').classList.remove('hidden');
-      }
-      
-      startTime = Date.now();
-      timerInterval = setInterval(() => {
-        document.getElementById('timer').innerText = ((Date.now() - startTime) / 1000).toFixed(1);
-      }, 100);
-    }
-
-    function nextQuestion() {
-      document.getElementById('feedback').innerText = '';
-      document.getElementById('answer-input').value = '';
-      document.getElementById('hint-box').classList.add('hidden');
-
-      if (isRetryMode) {
-        currentQuestionData = retryQuestions[qIndex - 1];
-        document.getElementById('mode-label').innerText = currentQuestionData.type === '展開' ? '展開しなさい' : '因数分解しなさい';
-      } else {
-        currentQuestionData = currentMode === 'expand' ? generateUniqueExpandQuestion() : generateUniqueFactorQuestion();
-        document.getElementById('mode-label').innerText = currentMode === 'expand' ? '展開しなさい' : '因数分解しなさい';
-      }
-      document.getElementById('question').innerText = currentQuestionData.text;
-
-      if (inputStyle === 'choice') {
-        const correctAns = currentQuestionData.type === '展開' ? currentQuestionData.answer : currentQuestionData.answerShow;
-        const allOpts = [correctAns, ...currentQuestionData.dummies];
-        currentChoices = shuffleArray(allOpts);
-
-        for (let i = 0; i < 4; i++) {
-          const btn = document.getElementById(`choice-${i}`);
-          btn.innerText = currentChoices[i];
-        }
-      } else {
-        document.getElementById('answer-input').focus();
-      }
-    }
-
-    function normalize(str) { 
-      return str
-        .replace(/\s+/g, '')
-        .toLowerCase()
-        .replace(/\^2/g, '²')
-        .replace(/\^3/g, '³')
-        .replace(/\^4/g, '⁴')
-        .replace(/a2/g, 'a²').replace(/b2/g, 'b²').replace(/c2/g, 'c²')
-        .replace(/x2/g, 'x²').replace(/y2/g, 'y²').replace(/z2/g, 'z²')
-        .replace(/x3/g, 'x³').replace(/x4/g, 'x⁴');
-    }
-
-    function parseTerms(str) {
-      let norm = normalize(str);
-      if (norm[0] !== '+' && norm[0] !== '-') norm = '+' + norm;
-      const terms = norm.match(/[+-][^+-]+/g) || [];
-      return terms.map(t => {
-        return t.replace(/\+1(?=[a-z²³⁴])/, '+').replace(/\-1(?=[a-z²³⁴])/, '-');
-      }).sort();
-    }
-
-    function comparePolynomials(user, target) {
-      const uTerms = parseTerms(user);
-      const tTerms = parseTerms(target);
-      if (uTerms.length !== tTerms.length) return false;
-      return uTerms.every((term, idx) => term === tTerms[idx]);
-    }
-
-    function selectChoice(index) {
-      const userAns = currentChoices[index];
-      processAnswer(userAns);
-    }
-
-    function checkAnswer() {
-      const inputEl = document.getElementById('answer-input');
-      const userRaw = inputEl.value;
-      if (!userRaw.trim()) return;
-      processAnswer(userRaw);
-    }
-
-    function processAnswer(userAns) {
-      incrementTotalQuestions();
-
-      let isCorrect = false;
-
-      if (currentQuestionData.type === '展開') {
-        isCorrect = comparePolynomials(userAns, currentQuestionData.answer);
-      } else {
-        const normUser = normalize(userAns);
-        isCorrect = currentQuestionData.answerValid.some(ans => normUser === normalize(ans));
-      }
-
-      playSound(isCorrect ? 'correct' : 'wrong');
-      triggerVisualFeedback(isCorrect);
-
-      if (isCorrect) {
-        if (isRetryMode) {
-          removeMistake(currentQuestionData);
-        }
-
-        setTimeout(() => {
-          if (qIndex < totalQuestionsInGame) {
-            qIndex++;
-            document.getElementById('q-num').innerText = qIndex;
-            nextQuestion();
-          } else {
-            finishGame();
-          }
-        }, 350);
-      } else {
-        if (!isRetryMode) {
-          saveMistake(currentQuestionData);
-        }
-        if (currentQuestionData.hint) {
-          document.getElementById('hint-text').innerText = currentQuestionData.hint;
-          document.getElementById('hint-box').classList.remove('hidden');
-        }
-        if (inputStyle === 'keyboard') {
-          const inputEl = document.getElementById('answer-input');
-          inputEl.value = '';
-          inputEl.focus();
-        }
-      }
-    }
-
-    function saveMistake(qData) {
-      let mistakes = JSON.parse(localStorage.getItem('math_mistakes') || '[]');
-      if (!mistakes.some(m => m.text === qData.text)) {
-        mistakes.push(qData);
-        localStorage.setItem('math_mistakes', JSON.stringify(mistakes));
-      }
-    }
-
-    function removeMistake(qData) {
-      let mistakes = JSON.parse(localStorage.getItem('math_mistakes') || '[]');
-      mistakes = mistakes.filter(m => m.text !== qData.text);
-      localStorage.setItem('math_mistakes', JSON.stringify(mistakes));
-    }
-
-    function incrementTotalQuestions() {
-      let count = parseInt(localStorage.getItem('math_total_q') || '0', 10);
-      localStorage.setItem('math_total_q', (count + 1).toString());
-    }
-
-    function finishGame() {
-      clearInterval(timerInterval);
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-      
-      if (!isRetryMode) {
-        saveRecord(elapsed);
-        alert(`🎉 クリア！ タイム: ${elapsed}秒`);
-      } else {
-        alert(`🎉 復習完了！ ミス問題を克服しました！`);
-      }
-      showHome();
-    }
-
-    function saveRecord(time) {
-      let records = JSON.parse(localStorage.getItem('math_records') || '[]');
-      records.push(parseFloat(time));
-      localStorage.setItem('math_records', JSON.stringify(records));
-    }
-
-    function showWorksheet() {
-      document.getElementById('mode-select').classList.add('hidden');
-      document.getElementById('worksheet-screen').classList.remove('hidden');
-      generateSheet('mix');
-    }
-
-    function generateSheet(type) {
-      currentSheetData = [];
-      showAnswersFlag = false;
-      document.getElementById('toggle-ans-btn').innerText = '答えと解説を表示する';
-
-      for (let i = 0; i < 10; i++) {
-        let q;
-        if (type === 'expand') q = generateUniqueExpandQuestion();
-        else if (type === 'factor') q = generateUniqueFactorQuestion();
-        else q = Math.random() > 0.5 ? generateUniqueExpandQuestion() : generateUniqueFactorQuestion();
-        currentSheetData.push(q);
-      }
-      renderSheet();
-    }
-
-    function renderSheet() {
-      const container = document.getElementById('sheet-list');
-      container.innerHTML = '';
-
-      currentSheetData.forEach((item, idx) => {
-        const card = document.createElement('div');
-        card.className = 'print-card bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col gap-2';
-        const ansText = item.type === '展開' ? item.answer : item.answerShow;
-
-        card.innerHTML = `
-          <div class="flex justify-between items-center text-xs font-semibold text-slate-400">
-            <span>問 ${idx + 1} [${item.type}]</span>
-          </div>
-          <div class="text-lg font-bold text-slate-900 dark:text-indigo-200 py-1">${item.text}</div>
-          <div class="sheet-ans text-emerald-600 dark:text-emerald-400 font-mono font-bold text-sm pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1 ${showAnswersFlag ? '' : 'hidden'}">
-            <div>答: ${ansText}</div>
-            <div class="text-xs font-normal text-slate-500 dark:text-slate-400">💡 ポイント: ${item.hint || '基本変形'}</div>
-          </div>
-        `;
-        container.appendChild(card);
+    if (type === 'correct') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now); // C5
+      osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+      osc.start(now); osc.stop(now + 0.3);
+    } else if (type === 'wrong') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(140, now);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+      osc.start(now); osc.stop(now + 0.2);
+    } else if (type === 'fanfare') {
+      [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.connect(g); g.connect(audioCtx.destination);
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(0.15, now + i * 0.08);
+        g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.25);
+        o.start(now + i * 0.08); o.stop(now + i * 0.08 + 0.25);
       });
     }
+  }
 
-    function toggleAnswers() {
-      showAnswersFlag = !showAnswersFlag;
-      document.getElementById('toggle-ans-btn').innerText = showAnswersFlag ? '答えと解説を隠す' : '答えと解説を表示する';
-      renderSheet();
+  // --- 2. 紙吹雪演出 (Canvas) ---
+  const canvas = document.getElementById('confettiCanvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+
+  function triggerConfetti() {
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+    particles = Array.from({length: 45}, () => ({
+      x: canvas.width / 2, y: canvas.height / 2,
+      vx: (Math.random() - 0.5) * 12, vy: (Math.random() - 0.5) * 12 - 3,
+      color: `hsl(${Math.random() * 360}, 90%, 60%)`,
+      size: Math.random() * 6 + 4, life: 1
+    }));
+    requestAnimationFrame(updateConfetti);
+  }
+
+  function updateConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach((p) => {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.25; p.life -= 0.025;
+      ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillRect(p.x, p.y, p.size, p.size);
+    });
+    particles = particles.filter(p => p.life > 0);
+    if (particles.length > 0) requestAnimationFrame(updateConfetti);
+  }
+
+  // --- 3. 大量問題データベース (省略なし) ---
+  const problemBank = {
+    easy: [
+      { cat: '2乗の展開', q: '(x + 2)²', ans: 'x² + 4x + 4', dummy: ['x² + 4', 'x² + 2x + 4', 'x² + 4x + 2'] },
+      { cat: '2乗の展開', q: '(x - 3)²', ans: 'x² - 6x + 9', dummy: ['x² - 9', 'x² - 3x + 9', 'x² + 6x + 9'] },
+      { cat: '2乗の展開', q: '(x + 5)²', ans: 'x² + 10x + 25', dummy: ['x² + 25', 'x² + 5x + 25', 'x² + 10x + 10'] },
+      { cat: '2乗の展開', q: '(x - 4)²', ans: 'x² - 8x + 16', dummy: ['x² - 16', 'x² - 4x + 16', 'x² + 8x + 16'] },
+      { cat: '和と差の積', q: '(x + 5)(x - 5)', ans: 'x² - 25', dummy: ['x² - 10', 'x² + 25', 'x² - 5x - 25'] },
+      { cat: '和と差の積', q: '(x + 3)(x - 3)', ans: 'x² - 9', dummy: ['x² - 6', 'x² + 9', 'x² - 3x - 9'] },
+      { cat: '和と差の積', q: '(x + 7)(x - 7)', ans: 'x² - 49', dummy: ['x² - 14', 'x² + 49', 'x² - 7x - 49'] },
+      { cat: '一次式の展開', q: '(x + 1)(x + 4)', ans: 'x² + 5x + 4', dummy: ['x² + 4x + 5', 'x² + 5x + 5', 'x² + 4'] },
+      { cat: '一次式の展開', q: '(x + 2)(x + 3)', ans: 'x² + 5x + 6', dummy: ['x² + 6x + 5', 'x² + 5x + 5', 'x² + 6'] },
+      { cat: '一次式の展開', q: '(x - 2)(x + 5)', ans: 'x² + 3x - 10', dummy: ['x² - 3x - 10', 'x² + 3x + 10', 'x² - 10'] },
+      { cat: '一次式の展開', q: '(x - 1)(x - 6)', ans: 'x² - 7x + 6', dummy: ['x² + 7x + 6', 'x² - 7x - 6', 'x² - 6'] },
+      { cat: '共通因数', q: '3x² + 6x', ans: '3x(x + 2)', dummy: ['3(x² + 2x)', 'x(3x + 6)', '3x(x + 3)'] }
+    ],
+    mid: [
+      { cat: '2乗の展開', q: '(2x + 3)²', ans: '4x² + 12x + 9', dummy: ['2x² + 12x + 9', '4x² + 6x + 9', '4x² + 9'] },
+      { cat: '2乗の展開', q: '(3x - 2)²', ans: '9x² - 12x + 4', dummy: ['3x² - 12x + 4', '9x² - 6x + 4', '9x² - 4'] },
+      { cat: '和と差の積', q: '(3x + 2y)(3x - 2y)', ans: '9x² - 4y²', dummy: ['9x² - 2y²', '3x² - 4y²', '9x² + 4y²'] },
+      { cat: '和と差の積', q: '(2x + 5y)(2x - 5y)', ans: '4x² - 25y²', dummy: ['4x² - 10y²', '2x² - 25y²', '4x² + 25y²'] },
+      { cat: '因数分解(公式)', q: 'x² - 9x + 18', ans: '(x - 3)(x - 6)', dummy: ['(x - 2)(x - 9)', '(x + 3)(x + 6)', '(x - 1)(x - 18)'] },
+      { cat: '因数分解(公式)', q: 'x² + 7x + 12', ans: '(x + 3)(x + 4)', dummy: ['(x + 2)(x + 6)', '(x + 1)(x + 12)', '(x - 3)(x - 4)'] },
+      { cat: '因数分解(公式)', q: 'x² - 2x - 15', ans: '(x - 5)(x + 3)', dummy: ['(x + 5)(x - 3)', '(x - 15)(x + 1)', '(x - 2)(x + 15)'] },
+      { cat: '因数分解(平方)', q: 'x² - 16y²', ans: '(x + 4y)(x - 4y)', dummy: ['(x - 4y)²', '(x + 8y)(x - 8y)', '(x - 16y)(x + 1)'] },
+      { cat: '因数分解(平方)', q: '9x² - 25', ans: '(3x + 5)(3x - 5)', dummy: ['(3x - 5)²', '(9x + 5)(x - 5)', '(3x + 25)(3x - 1)'] },
+      { cat: '展開(置き換え)', q: '(a + b + 1)(a + b - 1)', ans: '(a + b)² - 1', dummy: ['a² + b² - 1', '(a - b)² - 1', 'a² + 2ab + b²'] }
+    ],
+    hard: [
+      { cat: 'たすき掛け', q: '2x² + 5x + 3', ans: '(2x + 3)(x + 1)', dummy: ['(2x + 1)(x + 3)', '(2x + 5)(x + 1)', '(x + 3)(2x - 1)'] },
+      { cat: 'たすき掛け', q: '3x² - 7x + 2', ans: '(3x - 1)(x - 2)', dummy: ['(3x - 2)(x - 1)', '(3x + 1)(x - 2)', '(3x - 7)(x + 2)'] },
+      { cat: 'たすき掛け', q: '2x² + 7x + 5', ans: '(2x + 5)(x + 1)', dummy: ['(2x + 1)(x + 5)', '(x + 5)(2x - 1)', '(2x + 7)(x + 1)'] },
+      { cat: 'たすき掛け', q: '6x² + 7x + 2', ans: '(2x + 1)(3x + 2)', dummy: ['(6x + 1)(x + 2)', '(3x + 1)(2x + 2)', '(2x + 2)(3x + 1)'] },
+      { cat: 'たすき掛け', q: '4x² - 8x + 3', ans: '(2x - 1)(2x - 3)', dummy: ['(4x - 1)(x - 3)', '(2x + 1)(2x - 3)', '(4x - 3)(x - 1)'] },
+      { cat: '3乗の展開', q: '(x + 2)³', ans: 'x³ + 6x² + 12x + 8', dummy: ['x³ + 8', 'x³ + 6x + 8', 'x³ + 2x² + 4x + 8'] },
+      { cat: '3乗の展開', q: '(x - 1)³', ans: 'x³ - 3x² + 3x - 1', dummy: ['x³ - 1', 'x³ - 3x - 1', 'x³ + 3x² - 3x - 1'] },
+      { cat: '3乗の因数分解', q: 'x³ - 8', ans: '(x - 2)(x² + 2x + 4)', dummy: ['(x - 2)³', '(x - 2)(x² - 2x + 4)', '(x + 2)(x² - 2x + 4)'] },
+      { cat: '3乗の因数分解', q: 'x³ + 27', ans: '(x + 3)(x² - 3x + 9)', dummy: ['(x + 3)³', '(x + 3)(x² + 3x + 9)', '(x - 3)(x² + 3x + 9)'] },
+      { cat: '複二次式', q: 'x⁴ - 5x² + 4', ans: '(x + 1)(x - 1)(x + 2)(x - 2)', dummy: ['(x² - 1)(x² - 4)', '(x + 2)²(x - 2)²', '(x² - 5)(x² + 4)'] }
+    ]
+  };
+
+  // --- 状態変数 ---
+  let currentSet = [];
+  let currentIdx = 0;
+  let score = 0;
+  let combo = 0;
+  let wrongList = [];
+  let currentInput = "";
+  let stats = {};
+
+  let totalAnswered = parseInt(localStorage.getItem('math_total') || '0');
+  let totalCorrect = parseInt(localStorage.getItem('math_correct') || '0');
+
+  function initGame() {
+    const diff = document.getElementById('diffSelect').value;
+    const rawBank = [...problemBank[diff]];
+    
+    // シャッフルして10問抽出（問題数が足りない場合は重複を許容して10問作成）
+    currentSet = [];
+    const shuffled = rawBank.sort(() => Math.random() - 0.5);
+    while (currentSet.length < 10) {
+      currentSet.push(...shuffled);
+    }
+    currentSet = currentSet.slice(0, 10);
+
+    currentIdx = 0; score = 0; combo = 0;
+    wrongList = []; stats = {};
+    document.getElementById('resultModal').classList.remove('active');
+    updateComboUI();
+    showProblem();
+  }
+
+  function startReview() {
+    if (wrongList.length === 0) return;
+    currentSet = [...wrongList];
+    wrongList = []; currentIdx = 0; score = 0; combo = 0;
+    document.getElementById('resultModal').classList.remove('active');
+    updateComboUI();
+    showProblem();
+  }
+
+  function showProblem() {
+    const p = currentSet[currentIdx];
+    document.getElementById('qNum').textContent = currentIdx + 1;
+    document.getElementById('categoryTag').textContent = p.cat;
+    document.getElementById('problemText').textContent = p.q;
+
+    const mode = document.getElementById('modeSelect').value;
+    const choiceContainer = document.getElementById('optionsContainer');
+    const keyContainer = document.getElementById('keyInputArea');
+
+    if (mode === 'choice') {
+      choiceContainer.style.display = 'grid';
+      keyContainer.style.display = 'none';
+
+      const opts = [p.ans, ...p.dummy].sort(() => Math.random() - 0.5);
+      choiceContainer.innerHTML = '';
+      opts.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-option';
+        btn.textContent = opt;
+        btn.onclick = () => processAnswer(opt, p.ans, p.cat, btn);
+        choiceContainer.appendChild(btn);
+      });
+    } else {
+      choiceContainer.style.display = 'none';
+      keyContainer.style.display = 'flex';
+      currentInput = "";
+      updateInputDisplay();
+    }
+  }
+
+  function pressKey(key) {
+    if (key === 'DEL') {
+      currentInput = currentInput.slice(0, -1);
+    } else {
+      if (currentInput.length < 25) currentInput += key;
+    }
+    updateInputDisplay();
+  }
+
+  function updateInputDisplay() {
+    document.getElementById('inputDisplay').textContent = currentInput;
+  }
+
+  function submitKeyAnswer() {
+    if (!currentInput) return;
+    const p = currentSet[currentIdx];
+    const cleanUser = currentInput.replace(/\s+/g, '');
+    const cleanAns = p.ans.replace(/\s+/g, '');
+    processAnswer(cleanUser, cleanAns, p.cat, null);
+  }
+
+  function processAnswer(userAns, correctAns, category, btnEl) {
+    if (!stats[category]) stats[category] = { total: 0, correct: 0 };
+    stats[category].total++;
+    totalAnswered++;
+
+    const isCorrect = userAns === correctAns;
+
+    if (isCorrect) {
+      playSound('correct');
+      if (btnEl) btnEl.classList.add('correct');
+      score++; combo++; totalCorrect++;
+      stats[category].correct++;
+      if (combo >= 3) triggerConfetti();
+    } else {
+      playSound('wrong');
+      if (btnEl) btnEl.classList.add('wrong');
+      combo = 0;
+      wrongList.push(currentSet[currentIdx]);
     }
 
-    function showDashboard() {
-      document.getElementById('mode-select').classList.add('hidden');
-      document.getElementById('dashboard-screen').classList.remove('hidden');
-      
-      let totalQ = localStorage.getItem('math_total_q') || '0';
-      document.getElementById('total-questions').innerText = `${totalQ} 問`;
+    localStorage.setItem('math_total', totalAnswered);
+    localStorage.setItem('math_correct', totalCorrect);
 
-      let records = JSON.parse(localStorage.getItem('math_records') || '[]');
-      document.getElementById('total-plays').innerText = `${records.length} 回`;
-      if (records.length > 0) {
-        document.getElementById('best-time').innerText = `${Math.min(...records).toFixed(1)} 秒`;
-        document.getElementById('avg-time').innerText = `${(records.reduce((a, b) => a + b, 0) / records.length).toFixed(1)} 秒`;
-      }
-    }
+    updateComboUI();
 
-    function confirmQuit() {
-      const gameScreen = document.getElementById('game-screen');
-      if (!gameScreen.classList.contains('hidden')) {
-        if (confirm('途中退出しますか？（現在のタイムは記録されません）')) {
-          showHome();
-        }
+    setTimeout(() => {
+      currentIdx++;
+      if (currentIdx < currentSet.length) {
+        showProblem();
       } else {
-        showHome();
+        showResults();
       }
+    }, 600);
+  }
+
+  function updateComboUI() {
+    const badge = document.getElementById('comboBadge');
+    if (combo > 1) {
+      badge.style.display = 'inline-block';
+      badge.textContent = `${combo} Combo!`;
+      badge.classList.add('pop');
+      setTimeout(() => badge.classList.remove('pop'), 200);
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function showResults() {
+    playSound('fanfare');
+    triggerConfetti();
+    document.getElementById('scoreText').textContent = score;
+
+    const reviewBtn = document.getElementById('btnReview');
+    reviewBtn.style.display = wrongList.length > 0 ? 'block' : 'none';
+
+    const statsList = document.getElementById('statsList');
+    statsList.innerHTML = '';
+    for (const [cat, data] of Object.entries(stats)) {
+      const pct = Math.round((data.correct / data.total) * 100);
+      const item = document.createElement('div');
+      item.className = 'stat-item';
+      item.innerHTML = `
+        <div style="display:flex; justify-content:space-between; font-size: 0.85rem; font-weight:bold;">
+          <span>${cat}</span>
+          <span>${data.correct}/${data.total} (${pct}%)</span>
+        </div>
+        <div class="stat-bar-container">
+          <div class="stat-bar" style="width: ${pct}%;"></div>
+        </div>
+      `;
+      statsList.appendChild(item);
     }
 
-    function showHome() {
-      if (timerInterval) clearInterval(timerInterval);
-      document.getElementById('game-screen').classList.add('hidden');
-      document.getElementById('worksheet-screen').classList.add('hidden');
-      document.getElementById('dashboard-screen').classList.add('hidden');
-      document.getElementById('mode-select').classList.remove('hidden');
-      updateMistakeBadge();
-    }
+    document.getElementById('resultModal').classList.add('active');
+  }
 
-    updateMistakeBadge();
-  </script>
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+  document.getElementById('btnFormula').onclick = () => document.getElementById('formulaModal').classList.add('active');
+  document.getElementById('btnDash').onclick = () => {
+    document.getElementById('dashTotal').textContent = totalAnswered;
+    const acc = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+    document.getElementById('dashAcc').textContent = `${acc}%`;
+    document.getElementById('dashModal').classList.add('active');
+  };
+
+  document.getElementById('diffSelect').onchange = initGame;
+  document.getElementById('modeSelect').onchange = showProblem;
+
+  function printPrintout() {
+    if (wrongList.length === 0) {
+      alert("復習が必要な問題はありません。");
+      return;
+    }
+    const printArea = document.getElementById('printArea');
+    printArea.innerHTML = `
+      <div class="print-page">
+        <h1 style="font-size:1.8rem; margin-bottom:10px;">計算復習プリント</h1>
+        <p style="margin-bottom:20px;">氏名: ______________________  /10点</p>
+        <hr style="margin-bottom:20px;">
+        <ol style="font-size:1.3rem; line-height:2.5;">
+          ${wrongList.map(p => `<li>${p.q} = </li>`).join('')}
+        </ol>
+      </div>
+    `;
+    window.print();
+  }
+
+  initGame();
+</script>
 </body>
 </html>
