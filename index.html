@@ -13,6 +13,11 @@
   <meta name="apple-mobile-web-app-title" content="Math Speed">
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 紙吹雪演出用ライブラリ -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- 弱点分析グラフ用ライブラリ -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -105,17 +110,24 @@
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
 
   <header class="no-print bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
-    <div class="max-w-xl mx-auto px-4 h-16 flex items-center justify-between">
+    <div class="max-w-xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
       <div class="flex items-center gap-2 cursor-pointer" onclick="confirmQuit()">
         <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-black text-lg shadow-md shadow-indigo-500/20">
           ∑
         </div>
-        <span class="font-bold text-lg tracking-tight text-slate-900 dark:text-white">Math Speed</span>
+        <span class="font-bold text-lg tracking-tight text-slate-900 dark:text-white hidden sm:inline">Math Speed</span>
       </div>
       
-      <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition active:scale-95">
-        <span id="theme-icon" class="text-xl leading-none">🌙</span>
-      </button>
+      <div class="flex items-center gap-2">
+        <!-- 📖 公式カンニングペーパーボタン -->
+        <button onclick="openFormulaModal()" class="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition flex items-center gap-1 active:scale-95">
+          <span>📖 公式集</span>
+        </button>
+
+        <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition active:scale-95">
+          <span id="theme-icon" class="text-xl leading-none">🌙</span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -175,14 +187,21 @@
       </div>
     </div>
 
+    <!-- ゲーム画面 -->
     <div id="game-screen" class="w-full hidden space-y-4">
       <div class="flex justify-between items-center text-xs font-semibold text-slate-500 dark:text-slate-400">
         <button onclick="confirmQuit()" class="flex items-center gap-1 text-slate-400 hover:text-rose-500 transition font-bold py-1 px-2 rounded-lg hover:bg-rose-500/10">
           ✕ 退出
         </button>
-        <span class="bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20">
-          <span id="diff-label" class="font-bold">中級</span>
-        </span>
+        <div class="flex gap-2 items-center">
+          <span class="bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20">
+            <span id="diff-label" class="font-bold">中級</span>
+          </span>
+          <!-- コンボ表示 -->
+          <span id="combo-badge" class="hidden bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black px-2.5 py-1 rounded-full animate-bounce shadow-md">
+            <span id="combo-count">0</span> COMBO! 🔥
+          </span>
+        </div>
         <span class="text-slate-700 dark:text-slate-300">問題 <span id="q-num" class="text-indigo-600 dark:text-indigo-400 font-bold text-sm">1</span> / <span id="q-total">10</span></span>
         <span class="font-mono text-sm bg-slate-200 dark:bg-slate-800 px-3 py-1 rounded-full text-slate-800 dark:text-slate-200"><span id="timer">0.0</span>s</span>
       </div>
@@ -224,7 +243,7 @@
         </button>
       </div>
 
-      <!-- 解答エリア：選択式（4択・コンパクト2x2配置） -->
+      <!-- 解答エリア：選択式（4択） -->
       <div id="choice-answer-area" class="grid grid-cols-2 gap-2 hidden">
         <button onclick="selectChoice(0)" id="choice-0" class="py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 transition active:scale-95 shadow-sm text-center truncate">--</button>
         <button onclick="selectChoice(1)" id="choice-1" class="py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 transition active:scale-95 shadow-sm text-center truncate">--</button>
@@ -233,6 +252,36 @@
       </div>
 
       <div id="feedback" class="text-center font-bold h-6 text-sm"></div>
+    </div>
+
+    <!-- 📊 リザルト画面 & 弱点分析機能 -->
+    <div id="result-screen" class="w-full hidden space-y-5">
+      <div class="text-center space-y-1">
+        <h2 class="text-2xl font-black text-slate-900 dark:text-white">🎉 クリア！</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">お疲れ様でした！今回の分析結果です。</p>
+      </div>
+
+      <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-lg text-center space-y-1">
+        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">クリアタイム</span>
+        <div id="result-time" class="text-4xl font-black text-indigo-600 dark:text-indigo-400 font-mono">0.0s</div>
+      </div>
+
+      <!-- 弱点分析グラフ -->
+      <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-lg space-y-3">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+            <span>📊</span> カテゴリ別 正解率分析
+          </h3>
+          <span class="text-[10px] text-slate-400 font-semibold">弱点をチェック！</span>
+        </div>
+        <div class="relative w-full h-48 flex justify-center items-center">
+          <canvas id="weaknessChart"></canvas>
+        </div>
+      </div>
+
+      <button onclick="showHome()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-indigo-500/25 border-b-4 border-indigo-800 transition active:border-b-0 active:translate-y-1">
+        ホームに戻る
+      </button>
     </div>
 
     <div id="worksheet-screen" class="w-full hidden space-y-6">
@@ -301,6 +350,57 @@
 
   </main>
 
+  <!-- 📖 公式カンニングペーパー モーダル -->
+  <div id="formula-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 class="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+          <span>📖</span> 公式カンニングペーパー
+        </h3>
+        <button onclick="closeFormulaModal()" class="text-slate-400 hover:text-rose-500 font-bold p-1 rounded-lg">✕</button>
+      </div>
+      
+      <div class="overflow-y-auto space-y-4 pr-1 text-sm flex-1">
+        <!-- 展開の公式 -->
+        <div class="space-y-2">
+          <h4 class="font-bold text-xs text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">【展開の基本公式】</h4>
+          <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl space-y-1.5 font-mono text-xs">
+            <div>① (x+a)(x+b) = x²+(a+b)x+ab</div>
+            <div>② (x+a)² = x²+2ax+a²</div>
+            <div>③ (x-a)² = x²-2ax+a²</div>
+            <div>④ (x+a)(x-a) = x²-a²</div>
+            <div>⑤ (ax+b)(cx+d) = acx²+(ad+bc)x+bd</div>
+          </div>
+        </div>
+
+        <!-- 因数分解の公式 -->
+        <div class="space-y-2">
+          <h4 class="font-bold text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">【因数分解の基本公式】</h4>
+          <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl space-y-1.5 font-mono text-xs">
+            <div>① x²+(a+b)x+ab = (x+a)(x+b)</div>
+            <div>② x²+2ax+a² = (x+a)²</div>
+            <div>③ x²-a² = (x+a)(x-a)</div>
+            <div>④ acx²+(ad+bc)x+bd = (ax+b)(cx+d)</div>
+          </div>
+        </div>
+
+        <!-- 応用・高次の公式 -->
+        <div class="space-y-2">
+          <h4 class="font-bold text-xs text-purple-600 dark:text-purple-400 uppercase tracking-wider">【上級・構造変形】</h4>
+          <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl space-y-1.5 font-mono text-xs">
+            <div>① (a+b+c)² = a²+b²+c²+2ab+2bc+2ca</div>
+            <div>② 複二次式 (x⁴+ax²+b): x² = A と置くか平方式を作る</div>
+            <div>③ 降べきの順: 2変数以上の式は最も次数が低い文字で整理</div>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="closeFormulaModal()" class="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-sm hover:bg-slate-200 transition">
+        閉じる
+      </button>
+    </div>
+  </div>
+
   <script>
     let currentMode = '';
     let currentDifficulty = 'normal';
@@ -317,8 +417,14 @@
     let showAnswersFlag = false;
     let recentQuestions = [];
 
+    // 新機能用変数（コンボ＆弱点分析）
+    let currentCombo = 0;
+    let sessionStats = {}; // 例: { '2乗の公式': { total: 0, correct: 0 } }
+    let weaknessChartInstance = null;
+
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
+    // 🔊 正解音（ピロリン♪）/ 不正解音（ブッ）
     function playSound(type) {
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
@@ -330,21 +436,23 @@
 
       const now = audioCtx.currentTime;
       if (type === 'correct') {
+        // ピロリン♪ High-pitched bright chime
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(523.25, now);
-        osc.frequency.setValueAtTime(659.25, now + 0.1);
-        gain.gain.setValueAtTime(0.3, now);
+        osc.frequency.setValueAtTime(659.25, now); // E5
+        osc.frequency.setValueAtTime(987.77, now + 0.08); // B5
+        gain.gain.setValueAtTime(0.2, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
         osc.start(now);
         osc.stop(now + 0.3);
       } else {
+        // ブッ Low buzzer
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.setValueAtTime(130, now);
         osc.frequency.setValueAtTime(110, now + 0.1);
         gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
         osc.start(now);
-        osc.stop(now + 0.3);
+        osc.stop(now + 0.25);
       }
     }
 
@@ -473,7 +581,7 @@
           const dummy1 = `x²${fmtTerm(a-b, 'x')}${fmtTerm(a*b, '')}`;
           const dummy2 = `x²${fmtTerm(a+b, 'x')}${fmtTerm(-a*b, '')}`;
           const dummy3 = `x²${fmtTerm(a*b, 'x')}${fmtTerm(a+b, '')}`;
-          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '基本公式 (x+a)(x+b) = x²+(a+b)x+ab を使います。' };
+          return { category: '和と積の展開', text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '基本公式 (x+a)(x+b) = x²+(a+b)x+ab を使います。' };
         } else if (type === 1) {
           const a = getRandomNonZero(-9, 9);
           const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)})²`;
@@ -481,7 +589,7 @@
           const dummy1 = `x²${fmtTerm(a, 'x')}${fmtTerm(a*a, '')}`;
           const dummy2 = `x²${fmtTerm(-2*a, 'x')}${fmtTerm(a*a, '')}`;
           const dummy3 = `x²${fmtTerm(a*a, '')}`;
-          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '平方の公式 (x+a)² = x²+2ax+a² です。' };
+          return { category: '2乗の展開', text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '平方の公式 (x+a)² = x²+2ax+a² です。' };
         } else {
           const a = Math.floor(Math.random() * 9) + 1;
           const qText = `(x + ${a})(x - ${a})`;
@@ -489,7 +597,7 @@
           const dummy1 = `x²${fmtTerm(a*a, '')}`;
           const dummy2 = `x²${fmtTerm(-2*a, 'x')}${fmtTerm(-a*a, '')}`;
           const dummy3 = `x²${fmtTerm(2*a, 'x')}${fmtTerm(a*a, '')}`;
-          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '和と差の積 (x+a)(x-a) = x²-a² です。' };
+          return { category: '和と差の積', text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '和と差の積 (x+a)(x-a) = x²-a² です。' };
         }
       } 
       else if (currentDifficulty === 'normal') {
@@ -504,7 +612,7 @@
           const dummy1 = `${fmtTerm(a*c,'x²',true)}${fmtTerm(a*b+c*d,'x')}${fmtTerm(b*d,'')}`;
           const dummy2 = `${fmtTerm(a*c,'x²',true)}${fmtTerm(a*d-b*c,'x')}${fmtTerm(b*d,'')}`;
           const dummy3 = `${fmtTerm(a+c,'x²',true)}${fmtTerm(a*d+b*c,'x')}${fmtTerm(b+d,'')}`;
-          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: 'たすき掛け展開 (ax+b)(cx+d) = acx²+(ad+bc)x+bd です。' };
+          return { category: 'たすき掛け展開', text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: 'たすき掛け展開 (ax+b)(cx+d) = acx²+(ad+bc)x+bd です。' };
         } else if (type === 1) {
           const a = Math.floor(Math.random() * 3) + 2;
           const b = getRandomNonZero(-5, 5);
@@ -513,7 +621,7 @@
           const dummy1 = `${fmtTerm(a*a,'x²',true)}${fmtTerm(a*b,'x')}${fmtTerm(b*b,'')}`;
           const dummy2 = `${fmtTerm(a,'x²',true)}${fmtTerm(2*a*b,'x')}${fmtTerm(b*b,'')}`;
           const dummy3 = `${fmtTerm(a*a,'x²',true)}${fmtTerm(-2*a*b,'x')}${fmtTerm(b*b,'')}`;
-          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '(ax+b)² の展開です。' };
+          return { category: '2乗の展開', text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '(ax+b)² の展開です。' };
         } else {
           const a = getRandomNonZero(-5, 5);
           const b = getRandomNonZero(-5, 5);
@@ -522,7 +630,7 @@
           const dummy1 = `x²${fmtTerm(a-b, 'xy')}${fmtTerm(a*b, 'y²')}`;
           const dummy2 = `x²${fmtTerm(a+b, 'xy')}${fmtTerm(-a*b, 'y²')}`;
           const dummy3 = `x²${fmtTerm(a*b, 'xy')}${fmtTerm(a+b, 'y²')}`;
-          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '2変数yの和と積の展開です。' };
+          return { category: '多変数展開', text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '2変数yの和と積の展開です。' };
         }
       } 
       else {
@@ -541,6 +649,7 @@
             const dummy2 = `x⁴${fmtTerm(2*sum,'x³')}${fmtTerm(p1 + p2,'x²')}${fmtTerm(sum*(p1+p2),'x')}${fmtTerm(p1*p2,'')}`;
             const dummy3 = `x⁴${fmtTerm(2*sum,'x³')}${fmtTerm(sum*sum + p1 + p2,'x²')}${fmtTerm(p1*p2,'')}`;
             return {
+              category: '置き換え・組替え',
               text: qText,
               answer: ans,
               dummies: [dummy1, dummy2, dummy3],
@@ -550,6 +659,7 @@
           },
           () => {
             return {
+              category: '多変数対称式',
               text: `(a + b + c)(ab + bc + ca)`,
               answer: `a²b+ab²+b²c+bc²+c²a+ca²+3abc`,
               dummies: [
@@ -569,6 +679,7 @@
             const dummy2 = `x²+2xy+y²${fmtTerm(k,'x')}${fmtTerm(k,'y')}${fmtTerm(k*k,'')}`;
             const dummy3 = `x²+2xy+y²${fmtTerm(-2*k,'x')}${fmtTerm(-2*k,'y')}${fmtTerm(k*k,'')}`;
             return {
+              category: '3項の2乗',
               text: qText,
               answer: ans,
               dummies: [dummy1, dummy2, dummy3],
@@ -607,7 +718,7 @@
           const dummy1 = `(x-${strA})(x${strB})`;
           const dummy2 = `(x${strA})(x-${strB})`;
           const dummy3 = `(x+${a+b})(x+${a*b})`;
-          return { text: qText, answerValid: [`(x${strA})(x${strB})`, `(x${strB})(x${strA})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '和と積から2数を見つける基本パターンです。' };
+          return { category: '和と積の因数分解', text: qText, answerValid: [`(x${strA})(x${strB})`, `(x${strB})(x${strA})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '和と積から2数を見つける基本パターンです。' };
         } else if (type === 1) {
           const a = Math.floor(Math.random() * 8) + 2;
           const qText = `x² - ${a*a}`;
@@ -615,7 +726,7 @@
           const dummy1 = `(x-${a})²`;
           const dummy2 = `(x+${a})²`;
           const dummy3 = `(x+${a*a})(x-1)`;
-          return { text: qText, answerValid: [`(x+${a})(x-${a})`, `(x-${a})(x+${a})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '二乗の差 x²-a² = (x+a)(x-a) です。' };
+          return { category: '平方の差', text: qText, answerValid: [`(x+${a})(x-${a})`, `(x-${a})(x+${a})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '二乗の差 x²-a² = (x+a)(x-a) です。' };
         } else {
           const a = getRandomNonZero(-7, 7);
           const qText = `x²${fmtTerm(2*a,'x')}${fmtTerm(a*a,'')}`;
@@ -624,7 +735,7 @@
           const dummy1 = `(x-${strA})²`;
           const dummy2 = `(x${strA})(x-${strA})`;
           const dummy3 = `(x+2${strA})²`;
-          return { text: qText, answerValid: [`(x${strA})²`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '完全平方 (x+a)² の形です。' };
+          return { category: '完全平方式', text: qText, answerValid: [`(x${strA})²`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '完全平方 (x+a)² の形です。' };
         }
       } 
       else if (currentDifficulty === 'normal') {
@@ -641,7 +752,7 @@
           const dummy1 = `(${fmtTerm(a,'x',true)}${b>0?'-'+b:'+'+Math.abs(b)})(${t2})`;
           const dummy2 = `(${t1})(${fmtTerm(c,'x',true)}${d>0?'-'+d:'+'+Math.abs(d)})`;
           const dummy3 = `(${fmtTerm(a*c,'x',true)}+1)(x${b*d>0?'+'+b*d:b*d})`;
-          return { text: qText, answerValid: [`(${t1})(${t2})`, `(${t2})(${t1})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: 'たすき掛けを使って因数分解します。' };
+          return { category: 'たすき掛け', text: qText, answerValid: [`(${t1})(${t2})`, `(${t2})(${t1})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: 'たすき掛けを使って因数分解します。' };
         } else if (type === 1) {
           const m = Math.floor(Math.random() * 4) + 2;
           const a = getRandomNonZero(-5, 5);
@@ -653,7 +764,7 @@
           const dummy1 = `(x${strA})(${m}x${strB})`;
           const dummy2 = `${m}(x-${strA})(x${strB})`;
           const dummy3 = `(x${strA})(x${strB})`;
-          return { text: qText, answerValid: [`${m}(x${strA})(x${strB})`, `${m}(x${strB})(x${strA})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '【共通因数】まず全項を共通因数で括り出します。' };
+          return { category: '共通因数くくり', text: qText, answerValid: [`${m}(x${strA})(x${strB})`, `${m}(x${strB})(x${strA})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '【共通因数】まず全項を共通因数で括り出します。' };
         } else {
           const a = getRandomNonZero(-5, 5);
           const b = getRandomNonZero(-5, 5);
@@ -664,13 +775,14 @@
           const dummy1 = `(x-${strA}y)(x${strB}y)`;
           const dummy2 = `(x${strA}y)(x-${strB}y)`;
           const dummy3 = `(x+y)(x${a*b>0?'+'+a*b:a*b}y)`;
-          return { text: qText, answerValid: [`(x${strA}y)(x${strB}y)`, `(x${strB}y)(x${strA}y)`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: 'yを含んだ形の和と積の因数分解です。' };
+          return { category: '2変数因数分解', text: qText, answerValid: [`(x${strA}y)(x${strB}y)`, `(x${strB}y)(x${strA}y)`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: 'yを含んだ形の和と積の因数分解です。' };
         }
       } 
       else {
         const generators = [
           () => {
             return {
+              category: '複二次式',
               text: `x⁴ + 4y⁴`,
               answerValid: [`(x²+2xy+2y²)(x²-2xy+2y²)`, `(x²-2xy+2y²)(x²+2xy+2y²)`],
               answerShow: `(x²+2xy+2y²)(x²-2xy+2y²)`,
@@ -685,6 +797,7 @@
           },
           () => {
             return {
+              category: '降べきの順整理',
               text: `2x² + 5xy + 2y² + 4x + 5y + 2`,
               answerValid: [`(x+2y+1)(2x+y+2)`, `(2x+y+2)(x+2y+1)`],
               answerShow: `(x+2y+1)(2x+y+2)`,
@@ -717,6 +830,8 @@
       currentMode = mode;
       qIndex = 1;
       totalQuestionsInGame = 10;
+      resetCombo();
+      sessionStats = {}; // リセット
       setupGameUI();
       nextQuestion();
     }
@@ -729,12 +844,15 @@
       retryQuestions = mistakes;
       qIndex = 1;
       totalQuestionsInGame = retryQuestions.length;
+      resetCombo();
+      sessionStats = {};
       setupGameUI('復習');
       nextQuestion();
     }
 
     function setupGameUI(diffOverride) {
       document.getElementById('mode-select').classList.add('hidden');
+      document.getElementById('result-screen').classList.add('hidden');
       document.getElementById('game-screen').classList.remove('hidden');
       document.getElementById('q-num').innerText = qIndex;
       document.getElementById('q-total').innerText = totalQuestionsInGame;
@@ -836,10 +954,18 @@
         isCorrect = currentQuestionData.answerValid.some(ans => normUser === normalize(ans));
       }
 
+      // 弱点分析用統計記録
+      const cat = currentQuestionData.category || 'その他';
+      if (!sessionStats[cat]) sessionStats[cat] = { total: 0, correct: 0 };
+      sessionStats[cat].total++;
+
       playSound(isCorrect ? 'correct' : 'wrong');
       triggerVisualFeedback(isCorrect);
 
       if (isCorrect) {
+        sessionStats[cat].correct++;
+        incrementCombo();
+
         if (isRetryMode) {
           removeMistake(currentQuestionData);
         }
@@ -854,6 +980,7 @@
           }
         }, 350);
       } else {
+        resetCombo();
         if (!isRetryMode) {
           saveMistake(currentQuestionData);
         }
@@ -867,6 +994,32 @@
           inputEl.focus();
         }
       }
+    }
+
+    // 🎉 コンボシステム & 紙吹雪演出
+    function incrementCombo() {
+      currentCombo++;
+      const badge = document.getElementById('combo-badge');
+      const count = document.getElementById('combo-count');
+
+      if (currentCombo >= 2) {
+        count.innerText = currentCombo;
+        badge.classList.remove('hidden');
+      }
+
+      // 3コンボ以上で紙吹雪演出！
+      if (currentCombo >= 3 && typeof confetti === 'function') {
+        confetti({
+          particleCount: 35,
+          spread: 60,
+          origin: { y: 0.7 }
+        });
+      }
+    }
+
+    function resetCombo() {
+      currentCombo = 0;
+      document.getElementById('combo-badge').classList.add('hidden');
     }
 
     function saveMistake(qData) {
@@ -894,11 +1047,81 @@
       
       if (!isRetryMode) {
         saveRecord(elapsed);
-        alert(`🎉 クリア！ タイム: ${elapsed}秒`);
-      } else {
-        alert(`🎉 復習完了！ ミス問題を克服しました！`);
       }
-      showHome();
+
+      // 全問クリアの大紙吹雪演出
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 100, spread: 100, origin: { y: 0.5 } });
+      }
+
+      showResultScreen(elapsed);
+    }
+
+    // 📊 リザルト画面 & 弱点分析グラフ表示
+    function showResultScreen(time) {
+      document.getElementById('game-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.remove('hidden');
+      document.getElementById('result-time').innerText = `${time}s`;
+
+      renderWeaknessChart();
+    }
+
+    function renderWeaknessChart() {
+      const ctx = document.getElementById('weaknessChart').getContext('2d');
+      const labels = Object.keys(sessionStats);
+      const accuracies = labels.map(cat => {
+        const item = sessionStats[cat];
+        return Math.round((item.correct / item.total) * 100);
+      });
+
+      if (weaknessChartInstance) {
+        weaknessChartInstance.destroy();
+      }
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const textColor = isDark ? '#cbd5e1' : '#334155';
+
+      weaknessChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '正解率 (%)',
+            data: accuracies,
+            backgroundColor: accuracies.map(val => val < 60 ? 'rgba(244, 63, 94, 0.8)' : 'rgba(79, 70, 229, 0.8)'),
+            borderRadius: 8,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: { color: textColor, font: { size: 10 } },
+              grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }
+            },
+            x: {
+              ticks: { color: textColor, font: { size: 10 } },
+              grid: { display: false }
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    // 📖 モーダル制御
+    function openFormulaModal() {
+      document.getElementById('formula-modal').classList.remove('hidden');
+    }
+
+    function closeFormulaModal() {
+      document.getElementById('formula-modal').classList.add('hidden');
     }
 
     function saveRecord(time) {
@@ -939,7 +1162,7 @@
 
         card.innerHTML = `
           <div class="flex justify-between items-center text-xs font-semibold text-slate-400">
-            <span>問 ${idx + 1} [${item.type}]</span>
+            <span>問 ${idx + 1} [${item.type}] - ${item.category || ''}</span>
           </div>
           <div class="text-lg font-bold text-slate-900 dark:text-indigo-200 py-1">${item.text}</div>
           <div class="sheet-ans text-emerald-600 dark:text-emerald-400 font-mono font-bold text-sm pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1 ${showAnswersFlag ? '' : 'hidden'}">
@@ -986,6 +1209,7 @@
     function showHome() {
       if (timerInterval) clearInterval(timerInterval);
       document.getElementById('game-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.add('hidden');
       document.getElementById('worksheet-screen').classList.add('hidden');
       document.getElementById('dashboard-screen').classList.add('hidden');
       document.getElementById('mode-select').classList.remove('hidden');
