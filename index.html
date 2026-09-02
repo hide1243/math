@@ -6,8 +6,10 @@
   <title>展開・因数分解 | Math Speed Training</title>
   
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" id="dynamic-favicon" type="image/png">
+  <link rel="apple-touch-icon" id="dynamic-apple-icon">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Math Speed">
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -218,6 +220,46 @@
   </main>
 
   <script>
+    // 自動でSVGアイコン（紫角丸＋白文字シグマ）を生成してFavicon設定
+    function generateAppIcon() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      // 背景の角丸グラデーション（インディゴ系）
+      const grad = ctx.createLinearGradient(0, 0, 512, 512);
+      grad.addColorStop(0, '#6366f1');
+      grad.addColorStop(1, '#4f46e5');
+
+      const radius = 120;
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(radius, 0);
+      ctx.lineTo(512 - radius, 0);
+      ctx.quadraticCurveTo(512, 0, 512, radius);
+      ctx.lineTo(512, 512 - radius);
+      ctx.quadraticCurveTo(512, 512, 512 - radius, 512);
+      ctx.lineTo(radius, 512);
+      ctx.quadraticCurveTo(0, 512, 0, 512 - radius);
+      ctx.lineTo(0, radius);
+      ctx.quadraticCurveTo(0, 0, radius, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // Σ文字
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 320px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('∑', 256, 266);
+
+      const url = canvas.toDataURL('image/png');
+      document.getElementById('dynamic-favicon').href = url;
+      document.getElementById('dynamic-apple-icon').href = url;
+    }
+    generateAppIcon();
+
     let currentMode = '';
     let currentDifficulty = 'normal';
     let qIndex = 0;
@@ -407,9 +449,7 @@
         }
       } 
       else {
-        // 上級：多様な解法パターンを完全ランダム抽出
         const generators = [
-          // パターン1: 崩した組替え展開
           () => {
             const a = getRandomNonZero(1, 3);
             const b = a + getRandomNonZero(1, 2);
@@ -427,7 +467,6 @@
               hint: `【定数項の和の組み替え】(x+${a})(x+${b}) と (x+${c})(x+${d}) でペアを作り、x²+${sum}x を A と置きます。`
             };
           },
-          // パターン2: 3変数対称式の展開
           () => {
             return {
               text: `(a + b + c)(ab + bc + ca)`,
@@ -436,7 +475,6 @@
               hint: '【3変数対称式】1つの文字について整理して展開します。'
             };
           },
-          // パターン3: (a+b+c)² 応用
           () => {
             const k = getRandomNonZero(-4, 4);
             const qText = `(x + y ${k>0?'+ '+k:'- '+Math.abs(k)})²`;
@@ -448,7 +486,6 @@
               hint: '【(a+b+c)²の公式】a²+b²+c²+2ab+2bc+2ca を使います。'
             };
           },
-          // パターン4: (ax + b)³ の3乗展開
           () => {
             const a = Math.floor(Math.random() * 2) + 2;
             const b = getRandomNonZero(-2, 2);
@@ -531,13 +568,10 @@
         }
       } 
       else {
-        // 上級：解法のアプローチ（置き換え・数の足し引き・最低次整理・交代式）をランダム生成
         const generators = [
-          // 解法1: 崩し展開からの共通部分置き換え
           () => {
             const k = Math.floor(Math.random() * 2) + 1;
             const qText = `(x - ${k})(x + ${k+1})(x - ${k+2})(x + ${k+3}) + 24`;
-            const a1 = -(k+2), a2 = k+3, a3 = -k, a4 = k+1;
             return {
               text: qText,
               answerValid: [
@@ -548,7 +582,6 @@
               hint: '【崩しと置き換え】ペアを組み替えて共通部分 x²+x = A と置きます。'
             };
           },
-          // 解法2: 複二次式（数を足して引いて A²-B² を作る）
           () => {
             const k = Math.floor(Math.random() * 3) + 1;
             if (k === 1) {
@@ -577,7 +610,6 @@
               };
             }
           },
-          // 解法3: 最低次の文字について整理
           () => {
             return {
               text: `x³ + (a - 1)x² - (a + 2)x - 2a`,
@@ -587,7 +619,6 @@
               hint: '【最低次整理】次数が低い a について整理し、共通因数 (x+1) で括り出します。'
             };
           },
-          // 解法4: 2変数の複雑な多項式（1文字について降べきの順）
           () => {
             return {
               text: `2x² + 5xy + 2y² + 4x + 5y + 2`,
@@ -597,7 +628,6 @@
               hint: '【降べきの順】x について整理し、定数項を因数分解してから全体のたすき掛けを行います。'
             };
           },
-          // 解法5: 交代式の因数分解
           () => {
             return {
               text: `a(b² - c²) + b(c² - a²) + c(a² - b²)`,
