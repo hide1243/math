@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>展開・因数分解スピードトレーニング</title>
+  
+  <!-- PWA / iOS設定 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="数学トレ">
+  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/4F46E5/FFFFFF?text=Math">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { user-select: none; -webkit-user-select: none; }
+  </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col font-sans">
+
+  <!-- ヘッダー -->
+  <header class="bg-slate-800 border-b border-slate-700 p-4 text-center text-xl font-bold tracking-wide text-indigo-400">
+    展開・因数分解 スピードトレ
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 flex flex-col items-center justify-center p-4 max-w-md mx-auto w-full">
+    
+    <!-- モード選択画面 -->
+    <div id="mode-select" class="w-full space-y-4">
+      <h2 class="text-center text-lg text-slate-300 font-semibold mb-6">モードを選択してください</h2>
+      <button onclick="startGame('expand')" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
+        展開トレーニング
+      </button>
+      <button onclick="startGame('factor')" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
+        因数分解トレーニング
+      </button>
+      <button onclick="showDashboard()" class="w-full py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl font-medium transition">
+        ダッシュボード（成績確認）
+      </button>
+    </div>
+
+    <!-- ゲーム画面 -->
+    <div id="game-screen" class="w-full hidden space-y-6">
+      <div class="flex justify-between items-center text-sm text-slate-400">
+        <span>問題 <span id="q-num" class="text-white font-bold">1</span> / 10</span>
+        <span>タイム: <span id="timer" class="text-indigo-400 font-mono font-bold">0.0</span> 秒</span>
+      </div>
+
+      <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700 text-center">
+        <div id="question" class="text-2xl font-bold tracking-wider text-indigo-200">$(x+2)(x+3)$</div>
+      </div>
+
+      <div class="space-y-3">
+        <input type="text" id="answer-input" placeholder="答えを入力" class="w-full py-3 px-4 bg-slate-800 border border-slate-600 rounded-xl text-center text-xl font-mono text-white focus:outline-none focus:border-indigo-500">
+        <button onclick="checkAnswer()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
+          回答する
+        </button>
+      </div>
+    </div>
+
+    <!-- 結果・ダッシュボード画面 -->
+    <div id="dashboard-screen" class="w-full hidden space-y-6">
+      <h2 class="text-center text-xl font-bold text-slate-200">成績ダッシュボード</h2>
+      <div id="stats" class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4">
+        <div class="flex justify-between border-b border-slate-700 pb-2">
+          <span class="text-slate-400">総プレイ回数</span>
+          <span id="total-plays" class="font-bold">0 回</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-700 pb-2">
+          <span class="text-slate-400">平均クリアタイム</span>
+          <span id="avg-time" class="font-bold text-indigo-400">0.0 秒</span>
+        </div>
+      </div>
+      <button onclick="showHome()" class="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-bold transition">
+        ホームに戻る
+      </button>
+    </div>
+
+  </main>
+
+  <script>
+    // 簡易アプリロジック
+    let currentMode = '';
+    let qIndex = 0;
+    let startTime = 0;
+    let timerInterval = null;
+
+    function startGame(mode) {
+      currentMode = mode;
+      qIndex = 1;
+      document.getElementById('mode-select').classList.add('hidden');
+      document.getElementById('game-screen').classList.remove('hidden');
+      document.getElementById('q-num').innerText = qIndex;
+      startTime = Date.now();
+      timerInterval = setInterval(() => {
+        document.getElementById('timer').innerText = ((Date.now() - startTime) / 1000).toFixed(1);
+      }, 100);
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      const q = currentMode === 'expand' ? '(x + 3)(x + 4)' : 'x² + 7x + 12';
+      document.getElementById('question').innerText = q;
+      document.getElementById('answer-input').value = '';
+    }
+
+    function checkAnswer() {
+      if (qIndex < 10) {
+        qIndex++;
+        document.getElementById('q-num').innerText = qIndex;
+        nextQuestion();
+      } else {
+        clearInterval(timerInterval);
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        saveRecord(elapsed);
+        alert(`クリア！ タイム: ${elapsed}秒`);
+        showHome();
+      }
+    }
+
+    function saveRecord(time) {
+      let records = JSON.parse(localStorage.getItem('math_records') || '[]');
+      records.push(parseFloat(time));
+      localStorage.setItem('math_records', JSON.stringify(records));
+    }
+
+    function showDashboard() {
+      document.getElementById('mode-select').classList.add('hidden');
+      document.getElementById('dashboard-screen').classList.remove('hidden');
+      let records = JSON.parse(localStorage.getItem('math_records') || '[]');
+      document.getElementById('total-plays').innerText = `${records.length} 回`;
+      if (records.length > 0) {
+        const avg = (records.reduce((a, b) => a + b, 0) / records.length).toFixed(1);
+        document.getElementById('avg-time').innerText = `${avg} 秒`;
+      }
+    }
+
+    function showHome() {
+      document.getElementById('game-screen').classList.add('hidden');
+      document.getElementById('dashboard-screen').classList.add('hidden');
+      document.getElementById('mode-select').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
