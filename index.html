@@ -2,7 +2,7 @@
 <html lang="ja" class="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>展開・因数分解 | Math Speed Training</title>
   
   <link rel="manifest" href="manifest.json">
@@ -27,7 +27,7 @@
     }
   </script>
   <style>
-    body { user-select: none; -webkit-user-select: none; }
+    body { user-select: none; -webkit-user-select: none; touch-action: manipulation; }
     @media print {
       .no-print { display: none !important; }
       body { background: white !important; color: black !important; }
@@ -41,10 +41,12 @@
     .animate-pop {
       animation: popIn 0.5s ease-out forwards;
     }
+    input[type="text"] {
+      font-size: 18px !important;
+    }
   </style>
 
   <script>
-    // 新しいデザインのアイコン生成処理（Σ + ⚡）
     (function() {
       function createIcon() {
         const canvas = document.createElement('canvas');
@@ -52,13 +54,11 @@
         canvas.height = 512;
         const ctx = canvas.getContext('2d');
 
-        // 背景（グラデーション）
         const grad = ctx.createLinearGradient(0, 0, 512, 512);
         grad.addColorStop(0, '#4f46e5');
         grad.addColorStop(1, '#9333ea');
         ctx.fillStyle = grad;
         
-        // 角丸背景を描画
         const radius = 110;
         ctx.beginPath();
         ctx.moveTo(radius, 0);
@@ -73,7 +73,6 @@
         ctx.closePath();
         ctx.fill();
 
-        // 中央の「Σ」
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 240px sans-serif';
         ctx.textAlign = 'center';
@@ -82,7 +81,6 @@
         ctx.shadowBlur = 20;
         ctx.fillText('Σ', 230, 260);
 
-        // 「⚡」
         ctx.shadowBlur = 0;
         ctx.fillStyle = '#f59e0b';
         ctx.font = '900 130px sans-serif';
@@ -129,9 +127,23 @@
       
       <div class="text-center space-y-1">
         <h1 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">展開・因数分解</h1>
-        <p class="text-xs font-medium text-slate-500 dark:text-slate-400">難易度を選んでトレーニングを開始してください</p>
+        <p class="text-xs font-medium text-slate-500 dark:text-slate-400">難易度と解答方式を選んでスタート！</p>
+      </div>
+
+      <!-- 入力スタイルの切替タブ -->
+      <div class="bg-indigo-50 dark:bg-slate-900 p-2 rounded-2xl border border-indigo-100 dark:border-slate-800 space-y-1.5">
+        <div class="text-[11px] font-bold text-indigo-500 dark:text-indigo-400 text-center uppercase tracking-wider">解答スタイルの選択</div>
+        <div class="flex gap-1.5">
+          <button id="input-style-choice" onclick="setInputStyle('choice')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1">
+            <span>🔘 選択式 (4択)</span>
+          </button>
+          <button id="input-style-keyboard" onclick="setInputStyle('keyboard')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1">
+            <span>⌨️ キーボード入力</span>
+          </button>
+        </div>
       </div>
       
+      <!-- 難易度切替 -->
       <div class="bg-slate-200/70 dark:bg-slate-800/60 p-1.5 rounded-2xl flex gap-1.5 border border-slate-300/40 dark:border-slate-700/40">
         <button id="diff-easy" onclick="setDifficulty('easy')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all">初級</button>
         <button id="diff-normal" onclick="setDifficulty('normal')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all">中級</button>
@@ -184,31 +196,40 @@
         💡 <span id="hint-text"></span>
       </div>
 
-      <div class="space-y-2.5">
-        <input type="text" id="answer-input" placeholder="答えを入力" class="w-full py-3 px-4 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl text-center text-lg font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-500 shadow-sm transition" autocomplete="off">
+      <!-- 解答エリア：キーボード入力用 -->
+      <div id="keyboard-answer-area" class="space-y-3">
+        <input type="text" id="answer-input" placeholder="答えを入力" class="w-full py-4 px-4 bg-white dark:bg-slate-900 border-2 border-indigo-500/50 dark:border-indigo-500/40 rounded-2xl text-center text-lg font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-600 shadow-inner transition tracking-wider" autocomplete="off" inputmode="text">
         
         <div class="grid grid-cols-6 gap-1.5 pt-1">
-          <button onclick="appendKey('a')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">a</button>
-          <button onclick="appendKey('b')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">b</button>
-          <button onclick="appendKey('c')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">c</button>
-          <button onclick="appendKey('x')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">x</button>
-          <button onclick="appendKey('y')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">y</button>
-          <button onclick="appendKey('z')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">z</button>
+          <button onclick="appendKey('a')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">a</button>
+          <button onclick="appendKey('b')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">b</button>
+          <button onclick="appendKey('c')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">c</button>
+          <button onclick="appendKey('x')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">x</button>
+          <button onclick="appendKey('y')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">y</button>
+          <button onclick="appendKey('z')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">z</button>
 
-          <button onclick="appendKey('²')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">²</button>
-          <button onclick="appendKey('³')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">³</button>
-          <button onclick="appendKey('⁴')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">⁴</button>
-          <button onclick="appendKey('+')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">+</button>
-          <button onclick="appendKey('-')" class="py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">-</button>
-          <button onclick="backspaceKey()" class="py-2 bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold rounded-xl text-xs transition active:scale-95">⌫</button>
+          <button onclick="appendKey('²')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">²</button>
+          <button onclick="appendKey('³')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">³</button>
+          <button onclick="appendKey('⁴')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">⁴</button>
+          <button onclick="appendKey('+')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">+</button>
+          <button onclick="appendKey('-')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">-</button>
+          <button onclick="backspaceKey()" class="py-2.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold rounded-xl text-sm transition active:scale-95">⌫</button>
 
-          <button onclick="appendKey('(')" class="col-span-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">(</button>
-          <button onclick="appendKey(')')" class="col-span-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-sm transition active:scale-95">)</button>
+          <button onclick="appendKey('(')" class="col-span-3 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">(</button>
+          <button onclick="appendKey(')')" class="col-span-3 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">)</button>
         </div>
 
-        <button onclick="checkAnswer()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-indigo-500/25 border-b-4 border-indigo-800 transition active:border-b-0 active:translate-y-1">
+        <button onclick="checkAnswer()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-indigo-500/25 border-b-4 border-indigo-800 transition active:border-b-0 active:translate-y-1 mt-2">
           回答する (Enter)
         </button>
+      </div>
+
+      <!-- 解答エリア：選択式（4択）用 -->
+      <div id="choice-answer-area" class="grid grid-cols-1 gap-2.5 hidden">
+        <button onclick="selectChoice(0)" id="choice-0" class="py-4 px-4 bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 border-2 border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-2xl font-mono text-base font-bold text-slate-800 dark:text-slate-100 transition active:scale-98 shadow-sm">--</button>
+        <button onclick="selectChoice(1)" id="choice-1" class="py-4 px-4 bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 border-2 border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-2xl font-mono text-base font-bold text-slate-800 dark:text-slate-100 transition active:scale-98 shadow-sm">--</button>
+        <button onclick="selectChoice(2)" id="choice-2" class="py-4 px-4 bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 border-2 border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-2xl font-mono text-base font-bold text-slate-800 dark:text-slate-100 transition active:scale-98 shadow-sm">--</button>
+        <button onclick="selectChoice(3)" id="choice-3" class="py-4 px-4 bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 border-2 border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-2xl font-mono text-base font-bold text-slate-800 dark:text-slate-100 transition active:scale-98 shadow-sm">--</button>
       </div>
 
       <div id="feedback" class="text-center font-bold h-6 text-sm"></div>
@@ -283,11 +304,13 @@
   <script>
     let currentMode = '';
     let currentDifficulty = 'normal';
+    let inputStyle = 'choice'; // 'choice' または 'keyboard'
     let qIndex = 0;
     let totalQuestionsInGame = 10;
     let startTime = 0;
     let timerInterval = null;
     let currentQuestionData = null;
+    let currentChoices = [];
     let retryQuestions = [];
     let isRetryMode = false;
     let currentSheetData = [];
@@ -355,6 +378,20 @@
 
     initTheme();
 
+    function setInputStyle(style) {
+      inputStyle = style;
+      const choiceBtn = document.getElementById('input-style-choice');
+      const kbBtn = document.getElementById('input-style-keyboard');
+      
+      const activeClass = 'bg-indigo-600 text-white shadow-md font-black';
+      const inactiveClass = 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold';
+
+      choiceBtn.className = `flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 ${style === 'choice' ? activeClass : inactiveClass}`;
+      kbBtn.className = `flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 ${style === 'keyboard' ? activeClass : inactiveClass}`;
+    }
+
+    setInputStyle('choice');
+
     document.getElementById('answer-input').addEventListener('keypress', function (e) {
       if (e.key === 'Enter') checkAnswer();
     });
@@ -362,6 +399,7 @@
     function appendKey(char) {
       const input = document.getElementById('answer-input');
       input.value += char;
+      input.scrollLeft = input.scrollWidth;
       input.focus();
     }
 
@@ -432,17 +470,26 @@
           const b = getRandomNonZero(-9, 9);
           const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)})(x ${b>0?'+ '+b:'- '+Math.abs(b)})`;
           const ans = `x²${fmtTerm(a+b, 'x')}${fmtTerm(a*b, '')}`;
-          return { text: qText, answer: ans, type: '展開', hint: '基本公式 (x+a)(x+b) = x²+(a+b)x+ab を使います。' };
+          const dummy1 = `x²${fmtTerm(a-b, 'x')}${fmtTerm(a*b, '')}`;
+          const dummy2 = `x²${fmtTerm(a+b, 'x')}${fmtTerm(-a*b, '')}`;
+          const dummy3 = `x²${fmtTerm(a*b, 'x')}${fmtTerm(a+b, '')}`;
+          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '基本公式 (x+a)(x+b) = x²+(a+b)x+ab を使います。' };
         } else if (type === 1) {
           const a = getRandomNonZero(-9, 9);
           const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)})²`;
           const ans = `x²${fmtTerm(2*a, 'x')}${fmtTerm(a*a, '')}`;
-          return { text: qText, answer: ans, type: '展開', hint: '平方の公式 (x+a)² = x²+2ax+a² です。' };
+          const dummy1 = `x²${fmtTerm(a, 'x')}${fmtTerm(a*a, '')}`;
+          const dummy2 = `x²${fmtTerm(-2*a, 'x')}${fmtTerm(a*a, '')}`;
+          const dummy3 = `x²${fmtTerm(a*a, '')}`;
+          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '平方の公式 (x+a)² = x²+2ax+a² です。' };
         } else {
           const a = Math.floor(Math.random() * 9) + 1;
           const qText = `(x + ${a})(x - ${a})`;
           const ans = `x²${fmtTerm(-a*a, '')}`;
-          return { text: qText, answer: ans, type: '展開', hint: '和と差の積 (x+a)(x-a) = x²-a² です。' };
+          const dummy1 = `x²${fmtTerm(a*a, '')}`;
+          const dummy2 = `x²${fmtTerm(-2*a, 'x')}${fmtTerm(-a*a, '')}`;
+          const dummy3 = `x²${fmtTerm(2*a, 'x')}${fmtTerm(a*a, '')}`;
+          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '和と差の積 (x+a)(x-a) = x²-a² です。' };
         }
       } 
       else if (currentDifficulty === 'normal') {
@@ -454,19 +501,28 @@
           const d = getRandomNonZero(-6, 6);
           const qText = `(${fmtTerm(a,'x',true)} ${b>0?'+ '+b:'- '+Math.abs(b)})(${fmtTerm(c,'x',true)} ${d>0?'+ '+d:'- '+Math.abs(d)})`;
           const ans = `${fmtTerm(a*c,'x²',true)}${fmtTerm(a*d+b*c,'x')}${fmtTerm(b*d,'')}`;
-          return { text: qText, answer: ans, type: '展開', hint: 'たすき掛け展開 (ax+b)(cx+d) = acx²+(ad+bc)x+bd です。' };
+          const dummy1 = `${fmtTerm(a*c,'x²',true)}${fmtTerm(a*b+c*d,'x')}${fmtTerm(b*d,'')}`;
+          const dummy2 = `${fmtTerm(a*c,'x²',true)}${fmtTerm(a*d-b*c,'x')}${fmtTerm(b*d,'')}`;
+          const dummy3 = `${fmtTerm(a+c,'x²',true)}${fmtTerm(a*d+b*c,'x')}${fmtTerm(b+d,'')}`;
+          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: 'たすき掛け展開 (ax+b)(cx+d) = acx²+(ad+bc)x+bd です。' };
         } else if (type === 1) {
           const a = Math.floor(Math.random() * 3) + 2;
           const b = getRandomNonZero(-5, 5);
           const qText = `(${fmtTerm(a,'x',true)} ${b>0?'+ '+b:'- '+Math.abs(b)})²`;
           const ans = `${fmtTerm(a*a,'x²',true)}${fmtTerm(2*a*b,'x')}${fmtTerm(b*b,'')}`;
-          return { text: qText, answer: ans, type: '展開', hint: '(ax+b)² の展開です。' };
+          const dummy1 = `${fmtTerm(a*a,'x²',true)}${fmtTerm(a*b,'x')}${fmtTerm(b*b,'')}`;
+          const dummy2 = `${fmtTerm(a,'x²',true)}${fmtTerm(2*a*b,'x')}${fmtTerm(b*b,'')}`;
+          const dummy3 = `${fmtTerm(a*a,'x²',true)}${fmtTerm(-2*a*b,'x')}${fmtTerm(b*b,'')}`;
+          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '(ax+b)² の展開です。' };
         } else {
           const a = getRandomNonZero(-5, 5);
           const b = getRandomNonZero(-5, 5);
           const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)}y)(x ${b>0?'+ '+b:'- '+Math.abs(b)}y)`;
           const ans = `x²${fmtTerm(a+b, 'xy')}${fmtTerm(a*b, 'y²')}`;
-          return { text: qText, answer: ans, type: '展開', hint: '2変数yの和と積の展開です。' };
+          const dummy1 = `x²${fmtTerm(a-b, 'xy')}${fmtTerm(a*b, 'y²')}`;
+          const dummy2 = `x²${fmtTerm(a+b, 'xy')}${fmtTerm(-a*b, 'y²')}`;
+          const dummy3 = `x²${fmtTerm(a*b, 'xy')}${fmtTerm(a+b, 'y²')}`;
+          return { text: qText, answer: ans, dummies: [dummy1, dummy2, dummy3], type: '展開', hint: '2変数yの和と積の展開です。' };
         }
       } 
       else {
@@ -481,9 +537,13 @@
             const p1 = a * b;
             const p2 = c * d;
             const ans = `x⁴${fmtTerm(2*sum,'x³')}${fmtTerm(sum*sum + p1 + p2,'x²')}${fmtTerm(sum*(p1+p2),'x')}${fmtTerm(p1*p2,'')}`;
+            const dummy1 = `x⁴${fmtTerm(sum,'x³')}${fmtTerm(sum*sum + p1 + p2,'x²')}${fmtTerm(sum*(p1+p2),'x')}${fmtTerm(p1*p2,'')}`;
+            const dummy2 = `x⁴${fmtTerm(2*sum,'x³')}${fmtTerm(p1 + p2,'x²')}${fmtTerm(sum*(p1+p2),'x')}${fmtTerm(p1*p2,'')}`;
+            const dummy3 = `x⁴${fmtTerm(2*sum,'x³')}${fmtTerm(sum*sum + p1 + p2,'x²')}${fmtTerm(p1*p2,'')}`;
             return {
               text: qText,
               answer: ans,
+              dummies: [dummy1, dummy2, dummy3],
               type: '展開',
               hint: `【定数項の和の組み替え】(x+${a})(x+${b}) と (x+${c})(x+${d}) でペアを作り、x²+${sum}x を A と置きます。`
             };
@@ -492,6 +552,11 @@
             return {
               text: `(a + b + c)(ab + bc + ca)`,
               answer: `a²b+ab²+b²c+bc²+c²a+ca²+3abc`,
+              dummies: [
+                `a²b+ab²+b²c+bc²+c²a+ca²+abc`,
+                `a²b+ab²+b²c+bc²+c²a+ca²`,
+                `a³+b³+c³+3abc`
+              ],
               type: '展開',
               hint: '【3変数対称式】1つの文字について整理して展開します。'
             };
@@ -500,25 +565,15 @@
             const k = getRandomNonZero(-4, 4);
             const qText = `(x + y ${k>0?'+ '+k:'- '+Math.abs(k)})²`;
             const ans = `x²+2xy+y²${fmtTerm(2*k,'x')}${fmtTerm(2*k,'y')}${fmtTerm(k*k,'')}`;
+            const dummy1 = `x²+xy+y²${fmtTerm(2*k,'x')}${fmtTerm(2*k,'y')}${fmtTerm(k*k,'')}`;
+            const dummy2 = `x²+2xy+y²${fmtTerm(k,'x')}${fmtTerm(k,'y')}${fmtTerm(k*k,'')}`;
+            const dummy3 = `x²+2xy+y²${fmtTerm(-2*k,'x')}${fmtTerm(-2*k,'y')}${fmtTerm(k*k,'')}`;
             return {
               text: qText,
               answer: ans,
+              dummies: [dummy1, dummy2, dummy3],
               type: '展開',
               hint: '【(a+b+c)²の公式】a²+b²+c²+2ab+2bc+2ca を使います。'
-            };
-          },
-          () => {
-            const a = Math.floor(Math.random() * 2) + 2;
-            const b = getRandomNonZero(-2, 2);
-            const bStr = b > 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
-            const a3 = a*a*a, a23 = 3*a*a*b, a3_ = 3*a*b*b, b3 = b*b*b;
-            const qText = `(${a}x ${bStr})³`;
-            const ans = `${a3}x³${fmtTerm(a23,'x²')}${fmtTerm(a3_,'x')}${fmtTerm(b3,'')}`;
-            return {
-              text: qText,
-              answer: ans,
-              type: '展開',
-              hint: '【3乗公式】(a+b)³ = a³+3a²b+3ab²+b³ です。'
             };
           }
         ];
@@ -548,16 +603,28 @@
           const qText = `x²${fmtTerm(a+b,'x')}${fmtTerm(a*b,'')}`;
           const strA = a > 0 ? `+${a}` : `${a}`;
           const strB = b > 0 ? `+${b}` : `${b}`;
-          return { text: qText, answerValid: [`(x${strA})(x${strB})`, `(x${strB})(x${strA})`], answerShow: `(x${strA})(x${strB})`, type: '因数分解', hint: '和と積から2数を見つける基本パターンです。' };
+          const ansShow = `(x${strA})(x${strB})`;
+          const dummy1 = `(x-${strA})(x${strB})`;
+          const dummy2 = `(x${strA})(x-${strB})`;
+          const dummy3 = `(x+${a+b})(x+${a*b})`;
+          return { text: qText, answerValid: [`(x${strA})(x${strB})`, `(x${strB})(x${strA})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '和と積から2数を見つける基本パターンです。' };
         } else if (type === 1) {
           const a = Math.floor(Math.random() * 8) + 2;
           const qText = `x² - ${a*a}`;
-          return { text: qText, answerValid: [`(x+${a})(x-${a})`, `(x-${a})(x+${a})`], answerShow: `(x+${a})(x-${a})`, type: '因数分解', hint: '二乗の差 x²-a² = (x+a)(x-a) です。' };
+          const ansShow = `(x+${a})(x-${a})`;
+          const dummy1 = `(x-${a})²`;
+          const dummy2 = `(x+${a})²`;
+          const dummy3 = `(x+${a*a})(x-1)`;
+          return { text: qText, answerValid: [`(x+${a})(x-${a})`, `(x-${a})(x+${a})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '二乗の差 x²-a² = (x+a)(x-a) です。' };
         } else {
           const a = getRandomNonZero(-7, 7);
           const qText = `x²${fmtTerm(2*a,'x')}${fmtTerm(a*a,'')}`;
           const strA = a > 0 ? `+${a}` : `${a}`;
-          return { text: qText, answerValid: [`(x${strA})²`], answerShow: `(x${strA})²`, type: '因数分解', hint: '完全平方 (x+a)² の形です。' };
+          const ansShow = `(x${strA})²`;
+          const dummy1 = `(x-${strA})²`;
+          const dummy2 = `(x${strA})(x-${strA})`;
+          const dummy3 = `(x+2${strA})²`;
+          return { text: qText, answerValid: [`(x${strA})²`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '完全平方 (x+a)² の形です。' };
         }
       } 
       else if (currentDifficulty === 'normal') {
@@ -570,7 +637,11 @@
           const qText = `${fmtTerm(a*c,'x²',true)}${fmtTerm(a*d+b*c,'x')}${fmtTerm(b*d,'')}`;
           const t1 = `${fmtTerm(a,'x',true)}${b>0?'+'+b:b}`;
           const t2 = `${fmtTerm(c,'x',true)}${d>0?'+'+d:d}`;
-          return { text: qText, answerValid: [`(${t1})(${t2})`, `(${t2})(${t1})`], answerShow: `(${t1})(${t2})`, type: '因数分解', hint: 'たすき掛けを使って因数分解します。' };
+          const ansShow = `(${t1})(${t2})`;
+          const dummy1 = `(${fmtTerm(a,'x',true)}${b>0?'-'+b:'+'+Math.abs(b)})(${t2})`;
+          const dummy2 = `(${t1})(${fmtTerm(c,'x',true)}${d>0?'-'+d:'+'+Math.abs(d)})`;
+          const dummy3 = `(${fmtTerm(a*c,'x',true)}+1)(x${b*d>0?'+'+b*d:b*d})`;
+          return { text: qText, answerValid: [`(${t1})(${t2})`, `(${t2})(${t1})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: 'たすき掛けを使って因数分解します。' };
         } else if (type === 1) {
           const m = Math.floor(Math.random() * 4) + 2;
           const a = getRandomNonZero(-5, 5);
@@ -578,66 +649,38 @@
           const qText = `${m}x²${fmtTerm(m*(a+b),'x')}${fmtTerm(m*a*b,'')}`;
           const strA = a > 0 ? `+${a}` : `${a}`;
           const strB = b > 0 ? `+${b}` : `${b}`;
-          return { text: qText, answerValid: [`${m}(x${strA})(x${strB})`, `${m}(x${strB})(x${strA})`], answerShow: `${m}(x${strA})(x${strB})`, type: '因数分解', hint: '【共通因数】まず全項を共通因数で括り出します。' };
+          const ansShow = `${m}(x${strA})(x${strB})`;
+          const dummy1 = `(x${strA})(${m}x${strB})`;
+          const dummy2 = `${m}(x-${strA})(x${strB})`;
+          const dummy3 = `(x${strA})(x${strB})`;
+          return { text: qText, answerValid: [`${m}(x${strA})(x${strB})`, `${m}(x${strB})(x${strA})`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: '【共通因数】まず全項を共通因数で括り出します。' };
         } else {
           const a = getRandomNonZero(-5, 5);
           const b = getRandomNonZero(-5, 5);
           const qText = `x²${fmtTerm(a+b,'xy')}${fmtTerm(a*b,'y²')}`;
           const strA = a > 0 ? `+${a}` : `${a}`;
           const strB = b > 0 ? `+${b}` : `${b}`;
-          return { text: qText, answerValid: [`(x${strA}y)(x${strB}y)`, `(x${strB}y)(x${strA}y)`], answerShow: `(x${strA}y)(x${strB}y)`, type: '因数分解', hint: 'yを含んだ形の和と積の因数分解です。' };
+          const ansShow = `(x${strA}y)(x${strB}y)`;
+          const dummy1 = `(x-${strA}y)(x${strB}y)`;
+          const dummy2 = `(x${strA}y)(x-${strB}y)`;
+          const dummy3 = `(x+y)(x${a*b>0?'+'+a*b:a*b}y)`;
+          return { text: qText, answerValid: [`(x${strA}y)(x${strB}y)`, `(x${strB}y)(x${strA}y)`], answerShow: ansShow, dummies: [dummy1, dummy2, dummy3], type: '因数分解', hint: 'yを含んだ形の和と積の因数分解です。' };
         }
       } 
       else {
         const generators = [
           () => {
-            const k = Math.floor(Math.random() * 2) + 1;
-            const qText = `(x - ${k})(x + ${k+1})(x - ${k+2})(x + ${k+3}) + 24`;
             return {
-              text: qText,
-              answerValid: [
-                `(x²+x-12)(x²+x)`, `(x²+x)(x²+x-12)`, `x(x+1)(x-3)(x+4)`, `x(x+1)(x+4)(x-3)`
+              text: `x⁴ + 4y⁴`,
+              answerValid: [`(x²+2xy+2y²)(x²-2xy+2y²)`, `(x²-2xy+2y²)(x²+2xy+2y²)`],
+              answerShow: `(x²+2xy+2y²)(x²-2xy+2y²)`,
+              dummies: [
+                `(x²+2y²)(x²-2y²)`,
+                `(x²+4xy+2y²)(x²-4xy+2y²)`,
+                `(x²+2xy-2y²)(x²-2xy-2y²)`
               ],
-              answerShow: `x(x+1)(x-3)(x+4)`,
               type: '因数分解',
-              hint: '【崩しと置き換え】ペアを組み替えて共通部分 x²+x = A と置きます。'
-            };
-          },
-          () => {
-            const k = Math.floor(Math.random() * 3) + 1;
-            if (k === 1) {
-              return {
-                text: `x⁴ + 4y⁴`,
-                answerValid: [`(x²+2xy+2y²)(x²-2xy+2y²)`, `(x²-2xy+2y²)(x²+2xy+2y²)`],
-                answerShow: `(x²+2xy+2y²)(x²-2xy+2y²)`,
-                type: '因数分解',
-                hint: '【数を足して引く】4x²y² を足して引くことで (x²+2y²)² - (2xy)² を作ります。'
-              };
-            } else if (k === 2) {
-              return {
-                text: `x⁴ + x² + 25`,
-                answerValid: [`(x²+3x+5)(x²-3x+5)`, `(x²-3x+5)(x²+3x+5)`],
-                answerShow: `(x²+3x+5)(x²-3x+5)`,
-                type: '因数分解',
-                hint: '【数を足して引く】中央を10x²にするために9x²を足して引き、(x²+5)² - (3x)² を作り出します。'
-              };
-            } else {
-              return {
-                text: `x⁴ + 4`,
-                answerValid: [`(x²+2x+2)(x²-2x+2)`, `(x²-2x+2)(x²+2x+2)`],
-                answerShow: `(x²+2x+2)(x²-2x+2)`,
-                type: '因数分解',
-                hint: '【数を足して引く】4x² を足して引くことで (x²+2)² - (2x)² を作ります。'
-              };
-            }
-          },
-          () => {
-            return {
-              text: `x³ + (a - 1)x² - (a + 2)x - 2a`,
-              answerValid: [`(a+x²-2x)(x+1)`, `(x+1)(x²-2x+a)`, `(x+1)(a+x²-2x)`],
-              answerShow: `(x+1)(x²-2x+a)`,
-              type: '因数分解',
-              hint: '【最低次整理】次数が低い a について整理し、共通因数 (x+1) で括り出します。'
+              hint: '【数を足して引く】4x²y² を足して引くことで (x²+2y²)² - (2xy)² を作ります。'
             };
           },
           () => {
@@ -645,23 +688,28 @@
               text: `2x² + 5xy + 2y² + 4x + 5y + 2`,
               answerValid: [`(x+2y+1)(2x+y+2)`, `(2x+y+2)(x+2y+1)`],
               answerShow: `(x+2y+1)(2x+y+2)`,
+              dummies: [
+                `(x+2y+2)(2x+y+1)`,
+                `(x-2y+1)(2x-y+2)`,
+                `(2x+2y+1)(x+y+2)`
+              ],
               type: '因数分解',
               hint: '【降べきの順】x について整理し、定数項を因数分解してから全体のたすき掛けを行います。'
-            };
-          },
-          () => {
-            return {
-              text: `a(b² - c²) + b(c² - a²) + c(a² - b²)`,
-              answerValid: [`-(a-b)(b-c)(c-a)`, `(a-b)(b-c)(a-c)`, `(b-a)(c-b)(a-c)`],
-              answerShow: `(a-b)(b-c)(a-c)`,
-              type: '因数分解',
-              hint: '【交代式】1文字 a について整理し、共通因数 (b-c) を括り出します。'
             };
           }
         ];
         const choice = generators[Math.floor(Math.random() * generators.length)];
         return choice();
       }
+    }
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
     }
 
     function startGame(mode) {
@@ -693,6 +741,14 @@
       
       const diffNames = { easy: '初級', normal: '中級', hard: '上級 (構造・変形)' };
       document.getElementById('diff-label').innerText = diffOverride || diffNames[currentDifficulty];
+
+      if (inputStyle === 'choice') {
+        document.getElementById('choice-answer-area').classList.remove('hidden');
+        document.getElementById('keyboard-answer-area').classList.add('hidden');
+      } else {
+        document.getElementById('choice-answer-area').classList.add('hidden');
+        document.getElementById('keyboard-answer-area').classList.remove('hidden');
+      }
       
       startTime = Date.now();
       timerInterval = setInterval(() => {
@@ -704,7 +760,6 @@
       document.getElementById('feedback').innerText = '';
       document.getElementById('answer-input').value = '';
       document.getElementById('hint-box').classList.add('hidden');
-      document.getElementById('answer-input').focus();
 
       if (isRetryMode) {
         currentQuestionData = retryQuestions[qIndex - 1];
@@ -714,6 +769,19 @@
         document.getElementById('mode-label').innerText = currentMode === 'expand' ? '展開しなさい' : '因数分解しなさい';
       }
       document.getElementById('question').innerText = currentQuestionData.text;
+
+      if (inputStyle === 'choice') {
+        const correctAns = currentQuestionData.type === '展開' ? currentQuestionData.answer : currentQuestionData.answerShow;
+        const allOpts = [correctAns, ...currentQuestionData.dummies];
+        currentChoices = shuffleArray(allOpts);
+
+        for (let i = 0; i < 4; i++) {
+          const btn = document.getElementById(`choice-${i}`);
+          btn.innerText = currentChoices[i];
+        }
+      } else {
+        document.getElementById('answer-input').focus();
+      }
     }
 
     function normalize(str) { 
@@ -744,19 +812,27 @@
       return uTerms.every((term, idx) => term === tTerms[idx]);
     }
 
+    function selectChoice(index) {
+      const userAns = currentChoices[index];
+      processAnswer(userAns);
+    }
+
     function checkAnswer() {
       const inputEl = document.getElementById('answer-input');
       const userRaw = inputEl.value;
       if (!userRaw.trim()) return;
+      processAnswer(userRaw);
+    }
 
+    function processAnswer(userAns) {
       incrementTotalQuestions();
 
       let isCorrect = false;
 
       if (currentQuestionData.type === '展開') {
-        isCorrect = comparePolynomials(userRaw, currentQuestionData.answer);
+        isCorrect = comparePolynomials(userAns, currentQuestionData.answer);
       } else {
-        const normUser = normalize(userRaw);
+        const normUser = normalize(userAns);
         isCorrect = currentQuestionData.answerValid.some(ans => normUser === normalize(ans));
       }
 
@@ -785,8 +861,11 @@
           document.getElementById('hint-text').innerText = currentQuestionData.hint;
           document.getElementById('hint-box').classList.remove('hidden');
         }
-        inputEl.value = '';
-        inputEl.focus();
+        if (inputStyle === 'keyboard') {
+          const inputEl = document.getElementById('answer-input');
+          inputEl.value = '';
+          inputEl.focus();
+        }
       }
     }
 
