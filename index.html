@@ -131,14 +131,14 @@
       </div>
 
       <!-- 入力スタイルの切替タブ -->
-      <div class="bg-indigo-50 dark:bg-slate-900 p-2 rounded-2xl border border-indigo-100 dark:border-slate-800 space-y-1.5">
-        <div class="text-[11px] font-bold text-indigo-500 dark:text-indigo-400 text-center uppercase tracking-wider">解答スタイルの選択</div>
+      <div class="bg-indigo-50 dark:bg-slate-900/80 p-1.5 rounded-2xl border border-indigo-100/80 dark:border-slate-800 space-y-1">
+        <div class="text-[10px] font-bold text-indigo-500/90 dark:text-indigo-400 text-center uppercase tracking-wider">解答スタイル</div>
         <div class="flex gap-1.5">
-          <button id="input-style-choice" onclick="setInputStyle('choice')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1">
+          <button id="input-style-choice" onclick="setInputStyle('choice')" class="flex-1 py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1">
             <span>🔘 選択式 (4択)</span>
           </button>
-          <button id="input-style-keyboard" onclick="setInputStyle('keyboard')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1">
-            <span>⌨️ キーボード入力</span>
+          <button id="input-style-keyboard" onclick="setInputStyle('keyboard')" class="flex-1 py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1">
+            <span>⌨️ キーボード</span>
           </button>
         </div>
       </div>
@@ -187,8 +187,8 @@
         <span class="font-mono text-sm bg-slate-200 dark:bg-slate-800 px-3 py-1 rounded-full text-slate-800 dark:text-slate-200"><span id="timer">0.0</span>s</span>
       </div>
 
-      <div id="card" class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none text-center space-y-2">
-        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider" id="mode-label">展開しなさい</div>
+      <div id="card" class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-lg shadow-slate-200/40 dark:shadow-none text-center space-y-1.5">
+        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider" id="mode-label">展開しなさい</div>
         <div id="question" class="text-xl font-black tracking-wide text-slate-900 dark:text-white py-1 leading-relaxed">--</div>
       </div>
 
@@ -198,7 +198,7 @@
 
       <!-- 解答エリア：キーボード入力用 -->
       <div id="keyboard-answer-area" class="space-y-3">
-        <input type="text" id="answer-input" placeholder="答えを入力" class="w-full py-4 px-4 bg-white dark:bg-slate-900 border-2 border-indigo-500/50 dark:border-indigo-500/40 rounded-2xl text-center text-lg font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-600 shadow-inner transition tracking-wider" autocomplete="off" inputmode="text">
+        <input type="text" id="answer-input" placeholder="答えを入力" class="w-full py-3.5 px-4 bg-white dark:bg-slate-900 border-2 border-indigo-500/50 dark:border-indigo-500/40 rounded-2xl text-center text-lg font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-600 shadow-inner transition tracking-wider" autocomplete="off" inputmode="text">
         
         <div class="grid grid-cols-6 gap-1.5 pt-1">
           <button onclick="appendKey('a')" class="py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">a</button>
@@ -219,17 +219,17 @@
           <button onclick="appendKey(')')" class="col-span-3 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-base transition active:scale-95">)</button>
         </div>
 
-        <button onclick="checkAnswer()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-indigo-500/25 border-b-4 border-indigo-800 transition active:border-b-0 active:translate-y-1 mt-2">
+        <button onclick="checkAnswer()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-indigo-500/25 border-b-4 border-indigo-800 transition active:border-b-0 active:translate-y-1 mt-2">
           回答する (Enter)
         </button>
       </div>
 
-      <!-- 解答エリア：選択式（4択）用 -->
-      <div id="choice-answer-area" class="grid grid-cols-1 gap-2.5 hidden">
-        <button onclick="selectChoice(0)" id="choice-0" class="py-4 px-4 bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 border-2 border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-2xl font-mono text-base font-bold text-slate-800 dark:text-slate-100 transition active:scale-98 shadow-sm">--</button>
-        <button onclick="selectChoice(1)" id="choice-1" class="py-4 px-4 bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 border-2 border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-2xl font-mono text-base font-bold text-slate-800 dark:text-slate-100 transition active:scale-98 shadow-sm">--</button>
-        <button onclick="selectChoice(2)" id="choice-2" class="py-4 px-4 bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 border-2 border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-2xl font-mono text-base font-bold text-slate-800 dark:text-slate-100 transition active:scale-98 shadow-sm">--</button>
-        <button onclick="selectChoice(3)" id="choice-3" class="py-4 px-4 bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 border-2 border-slate-200 dark:border-slate-800 hover:border-indigo-500 rounded-2xl font-mono text-base font-bold text-slate-800 dark:text-slate-100 transition active:scale-98 shadow-sm">--</button>
+      <!-- 解答エリア：選択式（4択・コンパクト2x2配置） -->
+      <div id="choice-answer-area" class="grid grid-cols-2 gap-2 hidden">
+        <button onclick="selectChoice(0)" id="choice-0" class="py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 transition active:scale-95 shadow-sm text-center truncate">--</button>
+        <button onclick="selectChoice(1)" id="choice-1" class="py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 transition active:scale-95 shadow-sm text-center truncate">--</button>
+        <button onclick="selectChoice(2)" id="choice-2" class="py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 transition active:scale-95 shadow-sm text-center truncate">--</button>
+        <button onclick="selectChoice(3)" id="choice-3" class="py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 transition active:scale-95 shadow-sm text-center truncate">--</button>
       </div>
 
       <div id="feedback" class="text-center font-bold h-6 text-sm"></div>
@@ -383,11 +383,11 @@
       const choiceBtn = document.getElementById('input-style-choice');
       const kbBtn = document.getElementById('input-style-keyboard');
       
-      const activeClass = 'bg-indigo-600 text-white shadow-md font-black';
-      const inactiveClass = 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold';
+      const activeClass = 'bg-indigo-600 text-white shadow-sm font-bold';
+      const inactiveClass = 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium';
 
-      choiceBtn.className = `flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 ${style === 'choice' ? activeClass : inactiveClass}`;
-      kbBtn.className = `flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 ${style === 'keyboard' ? activeClass : inactiveClass}`;
+      choiceBtn.className = `flex-1 py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 ${style === 'choice' ? activeClass : inactiveClass}`;
+      kbBtn.className = `flex-1 py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 ${style === 'keyboard' ? activeClass : inactiveClass}`;
     }
 
     setInputStyle('choice');
