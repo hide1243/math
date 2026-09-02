@@ -3,70 +3,114 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>展開・因数分解スピードトレーニング</title>
+  <title>展開・因数分解</title>
   
   <!-- PWA / iOS設定 -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="数学トレ">
+  <meta name="apple-mobile-web-app-title" content="展開・因数分解">
   <link rel="apple-touch-icon" href="https://via.placeholder.com/192/4F46E5/FFFFFF?text=Math">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { user-select: none; -webkit-user-select: none; }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; color: black !important; }
+      .print-card { border: 1px solid #ccc !important; background: white !important; color: black !important; }
+    }
   </style>
 </head>
 <body class="bg-slate-900 text-white min-h-screen flex flex-col font-sans">
 
   <!-- ヘッダー -->
-  <header class="bg-slate-800 border-b border-slate-700 p-4 text-center text-xl font-bold tracking-wide text-indigo-400">
-    展開・因数分解 スピードトレ
+  <header class="no-print bg-slate-800 border-b border-slate-700 p-4 text-center text-xl font-bold tracking-wide text-indigo-400">
+    展開・因数分解
   </header>
 
   <!-- メインコンテンツ -->
-  <main class="flex-1 flex flex-col items-center justify-center p-4 max-w-md mx-auto w-full">
+  <main class="flex-1 flex flex-col items-center justify-center p-4 max-w-xl mx-auto w-full">
     
     <!-- モード選択画面 -->
-    <div id="mode-select" class="w-full space-y-4">
-      <h2 class="text-center text-lg text-slate-300 font-semibold mb-6">モードを選択してください</h2>
-      <button onclick="startGame('expand')" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
-        展開トレーニング（10問）
-      </button>
-      <button onclick="startGame('factor')" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
-        因数分解トレーニング（10問）
-      </button>
-      <button onclick="showDashboard()" class="w-full py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl font-medium transition">
-        ダッシュボード（成績確認）
-      </button>
+    <div id="mode-select" class="w-full space-y-5">
+      <h2 class="text-center text-lg text-slate-300 font-semibold">モード・難易度を選択してください</h2>
+      
+      <!-- 難易度切り替えタブ -->
+      <div class="bg-slate-800 p-1.5 rounded-xl flex gap-1 border border-slate-700">
+        <button id="diff-easy" onclick="setDifficulty('easy')" class="flex-1 py-2 rounded-lg font-bold text-sm transition">初級</button>
+        <button id="diff-normal" onclick="setDifficulty('normal')" class="flex-1 py-2 rounded-lg font-bold text-sm transition">中級</button>
+        <button id="diff-hard" onclick="setDifficulty('hard')" class="flex-1 py-2 rounded-lg font-bold text-sm transition">上級</button>
+      </div>
+
+      <div class="space-y-3">
+        <button onclick="startGame('expand')" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
+          ⚡ 展開スピードトレ（1問ずつ）
+        </button>
+        <button onclick="startGame('factor')" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
+          ⚡ 因数分解スピードトレ（1問ずつ）
+        </button>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800 space-y-3">
+        <button onclick="showWorksheet()" class="w-full py-4 bg-amber-600 hover:bg-amber-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
+          📝 問題集モード（一括表示）
+        </button>
+        <button onclick="showDashboard()" class="w-full py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl font-medium transition">
+          📊 ダッシュボード（成績確認）
+        </button>
+      </div>
     </div>
 
-    <!-- ゲーム画面 -->
+    <!-- 1問ずつ回答モード画面 -->
     <div id="game-screen" class="w-full hidden space-y-5">
       <div class="flex justify-between items-center text-sm text-slate-400">
-        <span>問題 <span id="q-num" class="text-white font-bold">1</span> / 10</span>
+        <span>[<span id="diff-label" class="font-bold text-amber-400">中級</span>] 問題 <span id="q-num" class="text-white font-bold">1</span> / 10</span>
         <span>タイム: <span id="timer" class="text-indigo-400 font-mono font-bold">0.0</span> 秒</span>
       </div>
 
-      <!-- 問題カード -->
-      <div id="card" class="bg-slate-800 p-8 rounded-2xl border border-slate-700 text-center transition-all duration-200">
+      <div id="card" class="bg-slate-800 p-8 rounded-2xl border border-slate-700 text-center">
         <div class="text-xs text-slate-400 mb-2" id="mode-label">展開しなさい</div>
         <div id="question" class="text-2xl font-bold tracking-wider text-indigo-200">--</div>
       </div>
 
-      <!-- 入力エリア -->
       <div class="space-y-3">
-        <input type="text" id="answer-input" placeholder="答えを入力 (例: x^2+5x+6)" class="w-full py-3 px-4 bg-slate-800 border border-slate-600 rounded-xl text-center text-lg font-mono text-white focus:outline-none focus:border-indigo-500" autocomplete="off">
+        <input type="text" id="answer-input" placeholder="答えを入力 (例: 6x^2+11x-35)" class="w-full py-3 px-4 bg-slate-800 border border-slate-600 rounded-xl text-center text-lg font-mono text-white focus:outline-none focus:border-indigo-500" autocomplete="off">
         <button onclick="checkAnswer()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
           回答する (Enter)
         </button>
       </div>
 
-      <!-- フィードバック表示 -->
       <div id="feedback" class="text-center font-bold h-6 text-sm"></div>
     </div>
 
-    <!-- 結果・ダッシュボード画面 -->
+    <!-- 問題集モード -->
+    <div id="worksheet-screen" class="w-full hidden space-y-6">
+      <div class="no-print flex flex-col gap-3">
+        <h2 class="text-center text-xl font-bold text-amber-400">📝 問題集モード</h2>
+        <div class="flex gap-2">
+          <button onclick="generateSheet('expand')" class="flex-1 py-2 bg-indigo-600 rounded-lg font-bold text-sm">展開 10問</button>
+          <button onclick="generateSheet('factor')" class="flex-1 py-2 bg-emerald-600 rounded-lg font-bold text-sm">因数分解 10問</button>
+          <button onclick="generateSheet('mix')" class="flex-1 py-2 bg-purple-600 rounded-lg font-bold text-sm">ミックス 10問</button>
+        </div>
+      </div>
+
+      <div id="sheet-list" class="space-y-4"></div>
+
+      <div class="no-print space-y-3 pt-4">
+        <button onclick="toggleAnswers()" id="toggle-ans-btn" class="w-full py-3 bg-amber-600 hover:bg-amber-500 rounded-xl font-bold transition">
+          答えをすべて表示する
+        </button>
+        <button onclick="window.print()" class="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-medium transition text-slate-300">
+          🖨️ 印刷する（紙に出力）
+        </button>
+        <button onclick="showHome()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold transition">
+          ホームに戻る
+        </button>
+      </div>
+    </div>
+
+    <!-- ダッシュボード画面 -->
     <div id="dashboard-screen" class="w-full hidden space-y-6">
       <h2 class="text-center text-xl font-bold text-slate-200">成績ダッシュボード</h2>
       <div id="stats" class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4">
@@ -92,86 +136,205 @@
 
   <script>
     let currentMode = '';
+    let currentDifficulty = 'normal';
     let qIndex = 0;
     let startTime = 0;
     let timerInterval = null;
     let currentQuestionData = null;
+    let currentSheetData = [];
+    let showAnswersFlag = false;
 
-    // キーボードのEnterキーで回答できるように設定
     document.getElementById('answer-input').addEventListener('keypress', function (e) {
-      if (e.key === 'Enter') {
-        checkAnswer();
-      }
+      if (e.key === 'Enter') checkAnswer();
     });
 
-    // 乱数生成ヘルパー (-9 ~ 9, 0除く)
-    function getRandomInt() {
-      let num = 0;
-      while (num === 0) {
-        num = Math.floor(Math.random() * 18) - 9;
-      }
-      return num;
+    function setDifficulty(diff) {
+      currentDifficulty = diff;
+      const btnE = document.getElementById('diff-easy');
+      const btnN = document.getElementById('diff-normal');
+      const btnH = document.getElementById('diff-hard');
+
+      btnE.className = 'flex-1 py-2 rounded-lg font-bold text-sm transition ' + (diff === 'easy' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white');
+      btnN.className = 'flex-1 py-2 rounded-lg font-bold text-sm transition ' + (diff === 'normal' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white');
+      btnH.className = 'flex-1 py-2 rounded-lg font-bold text-sm transition ' + (diff === 'hard' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white');
     }
 
-    // 展開用の問題生成 (x + a)(x + b)
+    setDifficulty('normal');
+
+    function getRandomNonZero(min, max) {
+      let n = 0;
+      while (n === 0) n = Math.floor(Math.random() * (max - min + 1)) + min;
+      return n;
+    }
+
+    function fmtTerm(coeff, varStr, isFirst = false) {
+      if (coeff === 0) return '';
+      let sign = coeff > 0 ? (isFirst ? '' : '+') : '-';
+      let abs = Math.abs(coeff);
+      let numStr = (abs === 1 && varStr !== '') ? '' : abs;
+      return `${sign}${numStr}${varStr}`;
+    }
+
     function generateExpandQuestion() {
-      const a = getRandomInt();
-      const b = getRandomInt();
-      
-      const strA = a > 0 ? `+ ${a}` : `- ${Math.abs(a)}`;
-      const strB = b > 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
-      const questionText = `(x ${strA})(x ${strB})`;
-
-      // 展開結果: x^2 + (a+b)x + ab
-      const sum = a + b;
-      const prod = a * b;
-
-      let ansStr = 'x^2';
-      if (sum !== 0) {
-        if (sum === 1) ansStr += '+x';
-        else if (sum === -1) ansStr += '-x';
-        else if (sum > 0) ansStr += `+${sum}x`;
-        else ansStr += `${sum}x`;
+      if (currentDifficulty === 'easy') {
+        const a = getRandomNonZero(-8, 8);
+        const b = getRandomNonZero(-8, 8);
+        const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)})(x ${b>0?'+ '+b:'- '+Math.abs(b)})`;
+        const sum = a + b, prod = a * b;
+        const ans = `x^2${fmtTerm(sum, 'x')}${fmtTerm(prod, '')}`;
+        return { text: qText, answer: ans, type: '展開' };
+      } 
+      else if (currentDifficulty === 'normal') {
+        const a = Math.floor(Math.random() * 4) + 2;
+        const c = Math.floor(Math.random() * 3) + 1;
+        const b = getRandomNonZero(-6, 6);
+        const d = getRandomNonZero(-6, 6);
+        
+        const qText = `(${fmtTerm(a,'x',true)} ${b>0?'+ '+b:'- '+Math.abs(b)})(${fmtTerm(c,'x',true)} ${d>0?'+ '+d:'- '+Math.abs(d)})`;
+        const A = a * c;
+        const B = a * d + b * c;
+        const C = b * d;
+        const ans = `${fmtTerm(A,'x^2',true)}${fmtTerm(B,'x')}${fmtTerm(C,'')}`;
+        return { text: qText, answer: ans, type: '展開' };
+      } 
+      else {
+        const type = Math.random() > 0.5 ? 1 : 2;
+        if (type === 1) {
+          const a = getRandomNonZero(-4, 4);
+          const b = getRandomNonZero(-4, 4);
+          const c = getRandomNonZero(-4, 4);
+          const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)})(x ${b>0?'+ '+b:'- '+Math.abs(b)})(x ${c>0?'+ '+c:'- '+Math.abs(c)})`;
+          const c2 = a + b + c;
+          const c1 = a*b + b*c + c*a;
+          const c0 = a * b * c;
+          const ans = `x^3${fmtTerm(c2,'x^2')}${fmtTerm(c1,'x')}${fmtTerm(c0,'')}`;
+          return { text: qText, answer: ans, type: '展開' };
+        } else {
+          const a = getRandomNonZero(-5, 5);
+          const qText = `(x + y ${a>0?'+ '+a:'- '+Math.abs(a)})^2`;
+          const a2 = a * 2;
+          const aSq = a * a;
+          const ans = `x^2+2xy+y^2${fmtTerm(a2,'x')}${fmtTerm(a2,'y')}${fmtTerm(aSq,'')}`;
+          return { text: qText, answer: ans, type: '展開' };
+        }
       }
-      if (prod > 0) ansStr += `+${prod}`;
-      else if (prod < 0) ansStr += `${prod}`;
-
-      return {
-        text: questionText,
-        answer: ansStr,
-        type: 'expand'
-      };
     }
 
-    // 因数分解用の問題生成 x^2 + px + q
     function generateFactorQuestion() {
-      const a = getRandomInt();
-      const b = getRandomInt();
-      const sum = a + b;
-      const prod = a * b;
+      if (currentDifficulty === 'easy') {
+        const a = getRandomNonZero(-8, 8);
+        const b = getRandomNonZero(-8, 8);
+        const sum = a + b, prod = a * b;
+        const qText = `x^2${fmtTerm(sum,'x')}${fmtTerm(prod,'')}`;
+        const strA = a > 0 ? `+${a}` : `${a}`;
+        const strB = b > 0 ? `+${b}` : `${b}`;
+        return {
+          text: qText,
+          answerValid: [`(x${strA})(x${strB})`, `(x${strB})(x${strA})`],
+          answerShow: `(x${strA})(x${strB})`,
+          type: '因数分解'
+        };
+      } 
+      else if (currentDifficulty === 'normal') {
+        const a = Math.floor(Math.random() * 3) + 2;
+        const c = Math.floor(Math.random() * 2) + 1;
+        const b = getRandomNonZero(-5, 5);
+        const d = getRandomNonZero(-5, 5);
 
-      let qStr = 'x^2';
-      if (sum !== 0) {
-        if (sum === 1) qStr += ' + x';
-        else if (sum === -1) qStr += ' - x';
-        else if (sum > 0) qStr += ` + ${sum}x`;
-        else qStr += ` - ${Math.abs(sum)}x`;
+        const A = a * c;
+        const B = a * d + b * c;
+        const C = b * d;
+
+        const qText = `${fmtTerm(A,'x^2',true)}${fmtTerm(B,'x')}${fmtTerm(C,'')}`;
+        const term1 = `${fmtTerm(a,'x',true)}${b>0?'+'+b:b}`;
+        const term2 = `${fmtTerm(c,'x',true)}${d>0?'+'+d:d}`;
+
+        return {
+          text: qText,
+          answerValid: [`(${term1})(${term2})`, `(${term2})(${term1})`],
+          answerShow: `(${term1})(${term2})`,
+          type: '因数分解'
+        };
+      } 
+      else {
+        const type = Math.random() > 0.5 ? 1 : 2;
+        if (type === 1) {
+          const a = getRandomNonZero(-5, 5);
+          const b = getRandomNonZero(-5, 5);
+          const sum = a + b, prod = a * b;
+          const qText = `x^4${fmtTerm(sum,'x^2')}${fmtTerm(prod,'')}`;
+          const strA = a > 0 ? `+${a}` : `${a}`;
+          const strB = b > 0 ? `+${b}` : `${b}`;
+          return {
+            text: qText,
+            answerValid: [`(x^2${strA})(x^2${strB})`, `(x^2${strB})(x^2${strA})`],
+            answerShow: `(x^2${strA})(x^2${strB})`,
+            type: '因数分解'
+          };
+        } else {
+          const a = Math.floor(Math.random() * 4) + 2;
+          const isPlus = Math.random() > 0.5;
+          const qText = isPlus ? `x^3 + ${a*a*a}` : `x^3 - ${a*a*a}`;
+          const aSq = a * a;
+          const ansStr = isPlus ? `(x+${a})(x^2-${a}x+${aSq})` : `(x-${a})(x^2+${a}x+${aSq})`;
+
+          return {
+            text: qText,
+            answerValid: [ansStr],
+            answerShow: ansStr,
+            type: '因数分解'
+          };
+        }
       }
-      if (prod > 0) qStr += ` + ${prod}`;
-      else if (prod < 0) qStr += ` - ${Math.abs(prod)}`;
+    }
 
-      const strA = a > 0 ? `+${a}` : `${a}`;
-      const strB = b > 0 ? `+${b}` : `${b}`;
-      
-      // パターン1: (x+a)(x+b), パターン2: (x+b)(x+a)
-      const ans1 = `(x${strA})(x${strB})`;
-      const ans2 = `(x${strB})(x${strA})`;
+    function showWorksheet() {
+      document.getElementById('mode-select').classList.add('hidden');
+      document.getElementById('worksheet-screen').classList.remove('hidden');
+      generateSheet('mix');
+    }
 
-      return {
-        text: qStr,
-        answerValid: [ans1, ans2],
-        type: 'factor'
-      };
+    function generateSheet(type) {
+      currentSheetData = [];
+      showAnswersFlag = false;
+      document.getElementById('toggle-ans-btn').innerText = '答えをすべて表示する';
+
+      for (let i = 0; i < 10; i++) {
+        let q;
+        if (type === 'expand') q = generateExpandQuestion();
+        else if (type === 'factor') q = generateFactorQuestion();
+        else q = Math.random() > 0.5 ? generateExpandQuestion() : generateFactorQuestion();
+        currentSheetData.push(q);
+      }
+      renderSheet();
+    }
+
+    function renderSheet() {
+      const container = document.getElementById('sheet-list');
+      container.innerHTML = '';
+
+      currentSheetData.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.className = 'print-card bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col gap-2';
+        const ansText = item.type === '展開' ? item.answer : item.answerShow;
+
+        card.innerHTML = `
+          <div class="flex justify-between items-center text-xs text-slate-400">
+            <span class="font-bold">問 ${idx + 1} [${item.type}]</span>
+          </div>
+          <div class="text-lg font-bold text-indigo-200 py-1">${item.text}</div>
+          <div class="sheet-ans text-emerald-400 font-mono font-bold text-md pt-2 border-t border-slate-700/50 ${showAnswersFlag ? '' : 'hidden'}">
+            答: ${ansText}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleAnswers() {
+      showAnswersFlag = !showAnswersFlag;
+      document.getElementById('toggle-ans-btn').innerText = showAnswersFlag ? '答えを隠す' : '答えをすべて表示する';
+      renderSheet();
     }
 
     function startGame(mode) {
@@ -180,6 +343,9 @@
       document.getElementById('mode-select').classList.add('hidden');
       document.getElementById('game-screen').classList.remove('hidden');
       document.getElementById('q-num').innerText = qIndex;
+      
+      const diffNames = { easy: '初級', normal: '中級', hard: '上級' };
+      document.getElementById('diff-label').innerText = diffNames[currentDifficulty];
       document.getElementById('mode-label').innerText = mode === 'expand' ? '展開しなさい' : '因数分解しなさい';
       
       startTime = Date.now();
@@ -194,39 +360,24 @@
       document.getElementById('feedback').innerText = '';
       document.getElementById('answer-input').value = '';
       document.getElementById('answer-input').focus();
-
-      if (currentMode === 'expand') {
-        currentQuestionData = generateExpandQuestion();
-      } else {
-        currentQuestionData = generateFactorQuestion();
-      }
-
+      currentQuestionData = currentMode === 'expand' ? generateExpandQuestion() : generateFactorQuestion();
       document.getElementById('question').innerText = currentQuestionData.text;
     }
 
-    // 入力文字を標準化（空白削除、小文字化）
-    function normalize(str) {
-      return str.replace(/\s+/g, '').toLowerCase();
-    }
+    function normalize(str) { return str.replace(/\s+/g, '').toLowerCase(); }
 
     function checkAnswer() {
       const userAns = normalize(document.getElementById('answer-input').value);
       if (!userAns) return;
 
-      let isCorrect = false;
-
-      if (currentQuestionData.type === 'expand') {
-        isCorrect = (userAns === normalize(currentQuestionData.answer));
-      } else {
-        isCorrect = currentQuestionData.answerValid.some(ans => userAns === normalize(ans));
-      }
+      let isCorrect = currentQuestionData.type === '展開' 
+        ? (userAns === normalize(currentQuestionData.answer))
+        : currentQuestionData.answerValid.some(ans => userAns === normalize(ans));
 
       const feedbackEl = document.getElementById('feedback');
-
       if (isCorrect) {
         feedbackEl.className = 'text-center font-bold h-6 text-sm text-emerald-400';
         feedbackEl.innerText = '⭕ 正解！';
-        
         setTimeout(() => {
           if (qIndex < 10) {
             qIndex++;
@@ -238,9 +389,7 @@
         }, 500);
       } else {
         feedbackEl.className = 'text-center font-bold h-6 text-sm text-rose-400';
-        const correctShow = currentQuestionData.type === 'expand' 
-          ? currentQuestionData.answer 
-          : currentQuestionData.answerValid[0];
+        const correctShow = currentQuestionData.type === '展開' ? currentQuestionData.answer : currentQuestionData.answerShow;
         feedbackEl.innerText = `❌ 不正解！ 正解: ${correctShow}`;
       }
     }
@@ -265,15 +414,14 @@
       let records = JSON.parse(localStorage.getItem('math_records') || '[]');
       document.getElementById('total-plays').innerText = `${records.length} 回`;
       if (records.length > 0) {
-        const best = Math.min(...records).toFixed(1);
-        const avg = (records.reduce((a, b) => a + b, 0) / records.length).toFixed(1);
-        document.getElementById('best-time').innerText = `${best} 秒`;
-        document.getElementById('avg-time').innerText = `${avg} 秒`;
+        document.getElementById('best-time').innerText = `${Math.min(...records).toFixed(1)} 秒`;
+        document.getElementById('avg-time').innerText = `${(records.reduce((a, b) => a + b, 0) / records.length).toFixed(1)} 秒`;
       }
     }
 
     function showHome() {
       document.getElementById('game-screen').classList.add('hidden');
+      document.getElementById('worksheet-screen').classList.add('hidden');
       document.getElementById('dashboard-screen').classList.add('hidden');
       document.getElementById('mode-select').classList.remove('hidden');
     }
