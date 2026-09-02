@@ -1,82 +1,115 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" class="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>展開・因数分解</title>
+  <title>展開・因数分解 | Math Speed Training</title>
   
   <!-- PWA / iOS設定 -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="展開・因数分解">
-  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/4F46E5/FFFFFF?text=Math">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Math Speed">
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+            mono: ['"SF Mono"', 'Consolas', '"Courier New"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
   <style>
     body { user-select: none; -webkit-user-select: none; }
     @media print {
       .no-print { display: none !important; }
       body { background: white !important; color: black !important; }
-      .print-card { border: 1px solid #ccc !important; background: white !important; color: black !important; }
+      .print-card { border: 1px solid #e2e8f0 !important; background: white !important; color: black !important; }
     }
   </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex flex-col font-sans">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
 
   <!-- ヘッダー -->
-  <header class="no-print bg-slate-800 border-b border-slate-700 p-4 text-center text-xl font-bold tracking-wide text-indigo-400">
-    展開・因数分解
+  <header class="no-print bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
+    <div class="max-w-xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-black text-lg shadow-md shadow-indigo-500/20">
+          ∑
+        </div>
+        <span class="font-bold text-lg tracking-tight text-slate-900 dark:text-white">Math Speed</span>
+      </div>
+      
+      <!-- テーマ切り替えボタン -->
+      <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition active:scale-95" title="テーマ切り替え">
+        <span id="theme-icon" class="text-xl leading-none">🌙</span>
+      </button>
+    </div>
   </header>
 
   <!-- メインコンテンツ -->
   <main class="flex-1 flex flex-col items-center justify-center p-4 max-w-xl mx-auto w-full">
     
     <!-- モード選択画面 -->
-    <div id="mode-select" class="w-full space-y-5">
-      <h2 class="text-center text-lg text-slate-300 font-semibold">モード・難易度を選択してください</h2>
+    <div id="mode-select" class="w-full space-y-6">
+      
+      <div class="text-center space-y-1">
+        <h1 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">展開・因数分解</h1>
+        <p class="text-xs font-medium text-slate-500 dark:text-slate-400">難易度を選んでトレーニングを開始してください</p>
+      </div>
       
       <!-- 難易度切り替えタブ -->
-      <div class="bg-slate-800 p-1.5 rounded-xl flex gap-1 border border-slate-700">
-        <button id="diff-easy" onclick="setDifficulty('easy')" class="flex-1 py-2 rounded-lg font-bold text-sm transition">初級</button>
-        <button id="diff-normal" onclick="setDifficulty('normal')" class="flex-1 py-2 rounded-lg font-bold text-sm transition">中級</button>
-        <button id="diff-hard" onclick="setDifficulty('hard')" class="flex-1 py-2 rounded-lg font-bold text-sm transition">上級</button>
+      <div class="bg-slate-200/70 dark:bg-slate-800/60 p-1.5 rounded-2xl flex gap-1.5 border border-slate-300/40 dark:border-slate-700/40">
+        <button id="diff-easy" onclick="setDifficulty('easy')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all">初級</button>
+        <button id="diff-normal" onclick="setDifficulty('normal')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all">中級</button>
+        <button id="diff-hard" onclick="setDifficulty('hard')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all">上級</button>
       </div>
 
       <div class="space-y-3">
-        <button onclick="startGame('expand')" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
-          ⚡ 展開スピードトレ（1問ずつ）
+        <button onclick="startGame('expand')" class="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-indigo-500/25 border-b-4 border-indigo-800 transition active:border-b-0 active:translate-y-1 flex items-center justify-between">
+          <span>⚡ 展開スピードトレ</span>
+          <span class="text-xs font-normal opacity-80">10問計測</span>
         </button>
-        <button onclick="startGame('factor')" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
-          ⚡ 因数分解スピードトレ（1問ずつ）
+        <button onclick="startGame('factor')" class="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-emerald-500/25 border-b-4 border-emerald-800 transition active:border-b-0 active:translate-y-1 flex items-center justify-between">
+          <span>⚡ 因数分解スピードトレ</span>
+          <span class="text-xs font-normal opacity-80">10問計測</span>
         </button>
       </div>
 
-      <div class="pt-4 border-t border-slate-800 space-y-3">
-        <button onclick="showWorksheet()" class="w-full py-4 bg-amber-600 hover:bg-amber-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
-          📝 問題集モード（一括表示）
+      <div class="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+        <button onclick="showWorksheet()" class="w-full py-3.5 px-6 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 rounded-2xl font-bold text-sm transition flex items-center justify-center gap-2">
+          <span>📝 問題集モード（一括表示・印刷）</span>
         </button>
-        <button onclick="showDashboard()" class="w-full py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl font-medium transition">
-          📊 ダッシュボード（成績確認）
+        <button onclick="showDashboard()" class="w-full py-3.5 px-6 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-2xl font-bold text-sm transition flex items-center justify-center gap-2">
+          <span>📊 成績ダッシュボード</span>
         </button>
       </div>
     </div>
 
     <!-- 1問ずつ回答モード画面 -->
     <div id="game-screen" class="w-full hidden space-y-5">
-      <div class="flex justify-between items-center text-sm text-slate-400">
-        <span>[<span id="diff-label" class="font-bold text-amber-400">中級</span>] 問題 <span id="q-num" class="text-white font-bold">1</span> / 10</span>
-        <span>タイム: <span id="timer" class="text-indigo-400 font-mono font-bold">0.0</span> 秒</span>
+      <div class="flex justify-between items-center text-xs font-semibold text-slate-500 dark:text-slate-400">
+        <span class="bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20">
+          <span id="diff-label" class="font-bold">中級</span>
+        </span>
+        <span class="text-slate-700 dark:text-slate-300">問題 <span id="q-num" class="text-indigo-600 dark:text-indigo-400 font-bold text-sm">1</span> / 10</span>
+        <span class="font-mono text-sm bg-slate-200 dark:bg-slate-800 px-3 py-1 rounded-full text-slate-800 dark:text-slate-200"><span id="timer">0.0</span>s</span>
       </div>
 
-      <div id="card" class="bg-slate-800 p-8 rounded-2xl border border-slate-700 text-center">
-        <div class="text-xs text-slate-400 mb-2" id="mode-label">展開しなさい</div>
-        <div id="question" class="text-2xl font-bold tracking-wider text-indigo-200">--</div>
+      <div id="card" class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none text-center space-y-3">
+        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider" id="mode-label">展開しなさい</div>
+        <div id="question" class="text-3xl font-black tracking-wide text-slate-900 dark:text-white py-2">--</div>
       </div>
 
       <div class="space-y-3">
-        <input type="text" id="answer-input" placeholder="答えを入力 (例: 6x^2+11x-35)" class="w-full py-3 px-4 bg-slate-800 border border-slate-600 rounded-xl text-center text-lg font-mono text-white focus:outline-none focus:border-indigo-500" autocomplete="off">
-        <button onclick="checkAnswer()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-lg shadow-lg transition active:scale-95">
+        <input type="text" id="answer-input" placeholder="答えを入力 (例: 6x² + 11x - 35)" class="w-full py-4 px-5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl text-center text-lg font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-500 shadow-sm transition" autocomplete="off">
+        <button onclick="checkAnswer()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-indigo-500/25 border-b-4 border-indigo-800 transition active:border-b-0 active:translate-y-1">
           回答する (Enter)
         </button>
       </div>
@@ -86,25 +119,28 @@
 
     <!-- 問題集モード -->
     <div id="worksheet-screen" class="w-full hidden space-y-6">
-      <div class="no-print flex flex-col gap-3">
-        <h2 class="text-center text-xl font-bold text-amber-400">📝 問題集モード</h2>
+      <div class="no-print flex flex-col gap-4">
+        <div class="text-center">
+          <h2 class="text-xl font-bold text-slate-900 dark:text-white">📝 問題集モード</h2>
+          <p class="text-xs text-slate-500">一括で確認・自己採点や印刷ができます</p>
+        </div>
         <div class="flex gap-2">
-          <button onclick="generateSheet('expand')" class="flex-1 py-2 bg-indigo-600 rounded-lg font-bold text-sm">展開 10問</button>
-          <button onclick="generateSheet('factor')" class="flex-1 py-2 bg-emerald-600 rounded-lg font-bold text-sm">因数分解 10問</button>
-          <button onclick="generateSheet('mix')" class="flex-1 py-2 bg-purple-600 rounded-lg font-bold text-sm">ミックス 10問</button>
+          <button onclick="generateSheet('expand')" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs shadow-sm">展開 10問</button>
+          <button onclick="generateSheet('factor')" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs shadow-sm">因数分解 10問</button>
+          <button onclick="generateSheet('mix')" class="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold text-xs shadow-sm">ミックス 10問</button>
         </div>
       </div>
 
-      <div id="sheet-list" class="space-y-4"></div>
+      <div id="sheet-list" class="space-y-3"></div>
 
-      <div class="no-print space-y-3 pt-4">
-        <button onclick="toggleAnswers()" id="toggle-ans-btn" class="w-full py-3 bg-amber-600 hover:bg-amber-500 rounded-xl font-bold transition">
+      <div class="no-print space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+        <button onclick="toggleAnswers()" id="toggle-ans-btn" class="w-full py-3.5 bg-amber-500 text-white rounded-2xl font-bold text-sm shadow-md transition">
           答えをすべて表示する
         </button>
-        <button onclick="window.print()" class="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-medium transition text-slate-300">
+        <button onclick="window.print()" class="w-full py-3.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl font-bold text-sm transition">
           🖨️ 印刷する（紙に出力）
         </button>
-        <button onclick="showHome()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold transition">
+        <button onclick="showHome()" class="w-full py-3.5 bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 rounded-2xl font-bold text-sm transition">
           ホームに戻る
         </button>
       </div>
@@ -112,22 +148,27 @@
 
     <!-- ダッシュボード画面 -->
     <div id="dashboard-screen" class="w-full hidden space-y-6">
-      <h2 class="text-center text-xl font-bold text-slate-200">成績ダッシュボード</h2>
-      <div id="stats" class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4">
-        <div class="flex justify-between border-b border-slate-700 pb-2">
-          <span class="text-slate-400">総プレイ回数</span>
-          <span id="total-plays" class="font-bold">0 回</span>
+      <div class="text-center">
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white">📊 成績ダッシュボード</h2>
+        <p class="text-xs text-slate-500">これまでのトレーニング記録</p>
+      </div>
+
+      <div id="stats" class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-none space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+          <span class="text-xs font-semibold text-slate-500">総プレイ回数</span>
+          <span id="total-plays" class="font-bold text-slate-900 dark:text-white text-base">0 回</span>
         </div>
-        <div class="flex justify-between border-b border-slate-700 pb-2">
-          <span class="text-slate-400">ベストタイム</span>
-          <span id="best-time" class="font-bold text-emerald-400">-- 秒</span>
+        <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+          <span class="text-xs font-semibold text-slate-500">ベストタイム</span>
+          <span id="best-time" class="font-black text-emerald-600 dark:text-emerald-400 text-lg">-- 秒</span>
         </div>
-        <div class="flex justify-between border-b border-slate-700 pb-2">
-          <span class="text-slate-400">平均クリアタイム</span>
-          <span id="avg-time" class="font-bold text-indigo-400">0.0 秒</span>
+        <div class="flex justify-between items-center pb-1">
+          <span class="text-xs font-semibold text-slate-500">平均クリアタイム</span>
+          <span id="avg-time" class="font-bold text-indigo-600 dark:text-indigo-400 text-base">0.0 秒</span>
         </div>
       </div>
-      <button onclick="showHome()" class="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-bold transition">
+
+      <button onclick="showHome()" class="w-full py-3.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl font-bold text-sm transition">
         ホームに戻る
       </button>
     </div>
@@ -144,6 +185,26 @@
     let currentSheetData = [];
     let showAnswersFlag = false;
 
+    // テーマ設定（ローカルストレージに保存）
+    function initTheme() {
+      const savedTheme = localStorage.getItem('math_theme') || 'light';
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.getElementById('theme-icon').innerText = '☀️';
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.getElementById('theme-icon').innerText = '🌙';
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('math_theme', isDark ? 'dark' : 'light');
+      document.getElementById('theme-icon').innerText = isDark ? '☀️' : '🌙';
+    }
+
+    initTheme();
+
     document.getElementById('answer-input').addEventListener('keypress', function (e) {
       if (e.key === 'Enter') checkAnswer();
     });
@@ -154,9 +215,12 @@
       const btnN = document.getElementById('diff-normal');
       const btnH = document.getElementById('diff-hard');
 
-      btnE.className = 'flex-1 py-2 rounded-lg font-bold text-sm transition ' + (diff === 'easy' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white');
-      btnN.className = 'flex-1 py-2 rounded-lg font-bold text-sm transition ' + (diff === 'normal' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white');
-      btnH.className = 'flex-1 py-2 rounded-lg font-bold text-sm transition ' + (diff === 'hard' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white');
+      const activeClass = 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm font-black';
+      const inactiveClass = 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-semibold';
+
+      btnE.className = `flex-1 py-2.5 rounded-xl font-bold text-xs transition-all ${diff === 'easy' ? activeClass : inactiveClass}`;
+      btnN.className = `flex-1 py-2.5 rounded-xl font-bold text-xs transition-all ${diff === 'normal' ? activeClass : inactiveClass}`;
+      btnH.className = `flex-1 py-2.5 rounded-xl font-bold text-xs transition-all ${diff === 'hard' ? activeClass : inactiveClass}`;
     }
 
     setDifficulty('normal');
@@ -181,7 +245,7 @@
         const b = getRandomNonZero(-8, 8);
         const qText = `(x ${a>0?'+ '+a:'- '+Math.abs(a)})(x ${b>0?'+ '+b:'- '+Math.abs(b)})`;
         const sum = a + b, prod = a * b;
-        const ans = `x^2${fmtTerm(sum, 'x')}${fmtTerm(prod, '')}`;
+        const ans = `x²${fmtTerm(sum, 'x')}${fmtTerm(prod, '')}`;
         return { text: qText, answer: ans, type: '展開' };
       } 
       else if (currentDifficulty === 'normal') {
@@ -194,7 +258,7 @@
         const A = a * c;
         const B = a * d + b * c;
         const C = b * d;
-        const ans = `${fmtTerm(A,'x^2',true)}${fmtTerm(B,'x')}${fmtTerm(C,'')}`;
+        const ans = `${fmtTerm(A,'x²',true)}${fmtTerm(B,'x')}${fmtTerm(C,'')}`;
         return { text: qText, answer: ans, type: '展開' };
       } 
       else {
@@ -207,14 +271,14 @@
           const c2 = a + b + c;
           const c1 = a*b + b*c + c*a;
           const c0 = a * b * c;
-          const ans = `x^3${fmtTerm(c2,'x^2')}${fmtTerm(c1,'x')}${fmtTerm(c0,'')}`;
+          const ans = `x³${fmtTerm(c2,'x²')}${fmtTerm(c1,'x')}${fmtTerm(c0,'')}`;
           return { text: qText, answer: ans, type: '展開' };
         } else {
           const a = getRandomNonZero(-5, 5);
-          const qText = `(x + y ${a>0?'+ '+a:'- '+Math.abs(a)})^2`;
+          const qText = `(x + y ${a>0?'+ '+a:'- '+Math.abs(a)})²`;
           const a2 = a * 2;
           const aSq = a * a;
-          const ans = `x^2+2xy+y^2${fmtTerm(a2,'x')}${fmtTerm(a2,'y')}${fmtTerm(aSq,'')}`;
+          const ans = `x²+2xy+y²${fmtTerm(a2,'x')}${fmtTerm(a2,'y')}${fmtTerm(aSq,'')}`;
           return { text: qText, answer: ans, type: '展開' };
         }
       }
@@ -225,7 +289,7 @@
         const a = getRandomNonZero(-8, 8);
         const b = getRandomNonZero(-8, 8);
         const sum = a + b, prod = a * b;
-        const qText = `x^2${fmtTerm(sum,'x')}${fmtTerm(prod,'')}`;
+        const qText = `x²${fmtTerm(sum,'x')}${fmtTerm(prod,'')}`;
         const strA = a > 0 ? `+${a}` : `${a}`;
         const strB = b > 0 ? `+${b}` : `${b}`;
         return {
@@ -245,7 +309,7 @@
         const B = a * d + b * c;
         const C = b * d;
 
-        const qText = `${fmtTerm(A,'x^2',true)}${fmtTerm(B,'x')}${fmtTerm(C,'')}`;
+        const qText = `${fmtTerm(A,'x²',true)}${fmtTerm(B,'x')}${fmtTerm(C,'')}`;
         const term1 = `${fmtTerm(a,'x',true)}${b>0?'+'+b:b}`;
         const term2 = `${fmtTerm(c,'x',true)}${d>0?'+'+d:d}`;
 
@@ -262,21 +326,21 @@
           const a = getRandomNonZero(-5, 5);
           const b = getRandomNonZero(-5, 5);
           const sum = a + b, prod = a * b;
-          const qText = `x^4${fmtTerm(sum,'x^2')}${fmtTerm(prod,'')}`;
+          const qText = `x⁴${fmtTerm(sum,'x²')}${fmtTerm(prod,'')}`;
           const strA = a > 0 ? `+${a}` : `${a}`;
           const strB = b > 0 ? `+${b}` : `${b}`;
           return {
             text: qText,
-            answerValid: [`(x^2${strA})(x^2${strB})`, `(x^2${strB})(x^2${strA})`],
-            answerShow: `(x^2${strA})(x^2${strB})`,
+            answerValid: [`(x²${strA})(x²${strB})`, `(x²${strB})(x²${strA})`],
+            answerShow: `(x²${strA})(x²${strB})`,
             type: '因数分解'
           };
         } else {
           const a = Math.floor(Math.random() * 4) + 2;
           const isPlus = Math.random() > 0.5;
-          const qText = isPlus ? `x^3 + ${a*a*a}` : `x^3 - ${a*a*a}`;
+          const qText = isPlus ? `x³ + ${a*a*a}` : `x³ - ${a*a*a}`;
           const aSq = a * a;
-          const ansStr = isPlus ? `(x+${a})(x^2-${a}x+${aSq})` : `(x-${a})(x^2+${a}x+${aSq})`;
+          const ansStr = isPlus ? `(x+${a})(x²-${a}x+${aSq})` : `(x-${a})(x²+${a}x+${aSq})`;
 
           return {
             text: qText,
@@ -315,15 +379,15 @@
 
       currentSheetData.forEach((item, idx) => {
         const card = document.createElement('div');
-        card.className = 'print-card bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col gap-2';
+        card.className = 'print-card bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col gap-2';
         const ansText = item.type === '展開' ? item.answer : item.answerShow;
 
         card.innerHTML = `
-          <div class="flex justify-between items-center text-xs text-slate-400">
-            <span class="font-bold">問 ${idx + 1} [${item.type}]</span>
+          <div class="flex justify-between items-center text-xs font-semibold text-slate-400">
+            <span>問 ${idx + 1} [${item.type}]</span>
           </div>
-          <div class="text-lg font-bold text-indigo-200 py-1">${item.text}</div>
-          <div class="sheet-ans text-emerald-400 font-mono font-bold text-md pt-2 border-t border-slate-700/50 ${showAnswersFlag ? '' : 'hidden'}">
+          <div class="text-lg font-bold text-slate-900 dark:text-indigo-200 py-1">${item.text}</div>
+          <div class="sheet-ans text-emerald-600 dark:text-emerald-400 font-mono font-bold text-sm pt-2 border-t border-slate-100 dark:border-slate-800 ${showAnswersFlag ? '' : 'hidden'}">
             答: ${ansText}
           </div>
         `;
@@ -364,7 +428,19 @@
       document.getElementById('question').innerText = currentQuestionData.text;
     }
 
-    function normalize(str) { return str.replace(/\s+/g, '').toLowerCase(); }
+    /* 入力の表記ゆれ吸収関数 */
+    function normalize(str) { 
+      return str
+        .replace(/\s+/g, '')
+        .toLowerCase()
+        .replace(/\^2/g, '²')
+        .replace(/\^3/g, '³')
+        .replace(/\^4/g, '⁴')
+        .replace(/x2/g, 'x²')
+        .replace(/y2/g, 'y²')
+        .replace(/x3/g, 'x³')
+        .replace(/x4/g, 'x⁴');
+    }
 
     function checkAnswer() {
       const userAns = normalize(document.getElementById('answer-input').value);
@@ -376,7 +452,7 @@
 
       const feedbackEl = document.getElementById('feedback');
       if (isCorrect) {
-        feedbackEl.className = 'text-center font-bold h-6 text-sm text-emerald-400';
+        feedbackEl.className = 'text-center font-bold h-6 text-sm text-emerald-500';
         feedbackEl.innerText = '⭕ 正解！';
         setTimeout(() => {
           if (qIndex < 10) {
@@ -388,7 +464,7 @@
           }
         }, 500);
       } else {
-        feedbackEl.className = 'text-center font-bold h-6 text-sm text-rose-400';
+        feedbackEl.className = 'text-center font-bold h-6 text-sm text-rose-500';
         const correctShow = currentQuestionData.type === '展開' ? currentQuestionData.answer : currentQuestionData.answerShow;
         feedbackEl.innerText = `❌ 不正解！ 正解: ${correctShow}`;
       }
