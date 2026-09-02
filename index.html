@@ -38,16 +38,42 @@
       body { background: white !important; color: black !important; }
       .print-card { border: 1px solid #e2e8f0 !important; background: white !important; color: black !important; }
     }
-    @keyframes popIn {
-      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
-      50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.9; }
-      100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
-    }
-    .animate-pop {
-      animation: popIn 0.5s ease-out forwards;
-    }
     input[type="text"] {
       font-size: 18px !important;
+    }
+
+    /* --- ✨ 押したボタンが光る演出のCSS --- */
+    .choice-btn {
+      transition: all 0.2s ease;
+    }
+
+    /* 正解：緑にブワッと光って少し膨らむ */
+    .choice-btn.correct-glow {
+      background-color: #10b981 !important; /* emerald-500 */
+      color: #ffffff !important;
+      border-color: #34d399 !important;
+      box-shadow: 0 0 20px #10b981, 0 0 40px #10b981 !important;
+      transform: scale(1.03);
+      z-index: 10;
+    }
+
+    /* 不正解：赤にブワッと光って揺れる */
+    .choice-btn.wrong-glow {
+      background-color: #f43f5e !important; /* rose-500 */
+      color: #ffffff !important;
+      border-color: #fb7185 !important;
+      box-shadow: 0 0 20px #f43f5e, 0 0 40px #f43f5e !important;
+      animation: button-shake 0.3s ease;
+      z-index: 10;
+    }
+
+    @keyframes button-shake {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+      100% { transform: translateX(0); }
     }
   </style>
 
@@ -119,7 +145,6 @@
       </div>
       
       <div class="flex items-center gap-2">
-        <!-- 📖 公式カンニングペーパーボタン -->
         <button onclick="openFormulaModal()" class="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition flex items-center gap-1 active:scale-95">
           <span>📖 公式集</span>
         </button>
@@ -133,8 +158,6 @@
 
   <main class="flex-1 flex flex-col items-center justify-center p-4 max-w-xl mx-auto w-full relative">
     
-    <div id="result-overlay" class="fixed top-1/2 left-1/2 pointer-events-none z-50 text-8xl font-black hidden"></div>
-
     <div id="mode-select" class="w-full space-y-5">
       
       <div class="text-center space-y-1">
@@ -245,10 +268,10 @@
 
       <!-- 解答エリア：選択式（4択） -->
       <div id="choice-answer-area" class="grid grid-cols-2 gap-2 hidden">
-        <button onclick="selectChoice(0)" id="choice-0" class="py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 transition active:scale-95 shadow-sm text-center truncate">--</button>
-        <button onclick="selectChoice(1)" id="choice-1" class="py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 transition active:scale-95 shadow-sm text-center truncate">--</button>
-        <button onclick="selectChoice(2)" id="choice-2" class="py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 transition active:scale-95 shadow-sm text-center truncate">--</button>
-        <button onclick="selectChoice(3)" id="choice-3" class="py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 transition active:scale-95 shadow-sm text-center truncate">--</button>
+        <button onclick="selectChoice(0, this)" id="choice-0" class="choice-btn py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-sm text-center truncate">--</button>
+        <button onclick="selectChoice(1, this)" id="choice-1" class="choice-btn py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-sm text-center truncate">--</button>
+        <button onclick="selectChoice(2, this)" id="choice-2" class="choice-btn py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-sm text-center truncate">--</button>
+        <button onclick="selectChoice(3, this)" id="choice-3" class="choice-btn py-3 px-3 bg-white dark:bg-slate-900 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 rounded-xl font-mono text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-sm text-center truncate">--</button>
       </div>
 
       <div id="feedback" class="text-center font-bold h-6 text-sm"></div>
@@ -404,7 +427,7 @@
   <script>
     let currentMode = '';
     let currentDifficulty = 'normal';
-    let inputStyle = 'choice'; // 'choice' または 'keyboard'
+    let inputStyle = 'choice';
     let qIndex = 0;
     let totalQuestionsInGame = 10;
     let startTime = 0;
@@ -417,14 +440,12 @@
     let showAnswersFlag = false;
     let recentQuestions = [];
 
-    // 新機能用変数（コンボ＆弱点分析）
     let currentCombo = 0;
-    let sessionStats = {}; // 例: { '2乗の公式': { total: 0, correct: 0 } }
+    let sessionStats = {};
     let weaknessChartInstance = null;
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    // 🔊 正解音（ピロリン♪）/ 不正解音（ブッ）
     function playSound(type) {
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
@@ -436,16 +457,14 @@
 
       const now = audioCtx.currentTime;
       if (type === 'correct') {
-        // ピロリン♪ High-pitched bright chime
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(659.25, now); // E5
-        osc.frequency.setValueAtTime(987.77, now + 0.08); // B5
+        osc.frequency.setValueAtTime(659.25, now);
+        osc.frequency.setValueAtTime(987.77, now + 0.08);
         gain.gain.setValueAtTime(0.2, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
         osc.start(now);
         osc.stop(now + 0.3);
       } else {
-        // ブッ Low buzzer
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(130, now);
         osc.frequency.setValueAtTime(110, now + 0.1);
@@ -454,17 +473,6 @@
         osc.start(now);
         osc.stop(now + 0.25);
       }
-    }
-
-    function triggerVisualFeedback(isCorrect) {
-      const overlay = document.getElementById('result-overlay');
-      overlay.innerText = isCorrect ? '⭕' : '❌';
-      overlay.className = `fixed top-1/2 left-1/2 pointer-events-none z-50 text-8xl font-black animate-pop ${isCorrect ? 'text-emerald-500' : 'text-rose-500'}`;
-      overlay.classList.remove('hidden');
-
-      setTimeout(() => {
-        overlay.classList.add('hidden');
-      }, 450);
     }
 
     function initTheme() {
@@ -831,7 +839,7 @@
       qIndex = 1;
       totalQuestionsInGame = 10;
       resetCombo();
-      sessionStats = {}; // リセット
+      sessionStats = {};
       setupGameUI();
       nextQuestion();
     }
@@ -896,6 +904,9 @@
         for (let i = 0; i < 4; i++) {
           const btn = document.getElementById(`choice-${i}`);
           btn.innerText = currentChoices[i];
+          btn.disabled = false;
+          // 光る装飾クラスをリセット
+          btn.classList.remove('correct-glow', 'wrong-glow');
         }
       } else {
         document.getElementById('answer-input').focus();
@@ -930,19 +941,21 @@
       return uTerms.every((term, idx) => term === tTerms[idx]);
     }
 
-    function selectChoice(index) {
+    /* 選択肢が押されたときの処理（ボタンが光る演出付き） */
+    function selectChoice(index, targetBtn) {
       const userAns = currentChoices[index];
-      processAnswer(userAns);
+      processAnswer(userAns, targetBtn);
     }
 
     function checkAnswer() {
       const inputEl = document.getElementById('answer-input');
       const userRaw = inputEl.value;
       if (!userRaw.trim()) return;
-      processAnswer(userRaw);
+      processAnswer(userRaw, null);
     }
 
-    function processAnswer(userAns) {
+    /* 正解・不正解の判定とボタン発光の演出 */
+    function processAnswer(userAns, targetBtn) {
       incrementTotalQuestions();
 
       let isCorrect = false;
@@ -954,13 +967,26 @@
         isCorrect = currentQuestionData.answerValid.some(ans => normUser === normalize(ans));
       }
 
-      // 弱点分析用統計記録
       const cat = currentQuestionData.category || 'その他';
       if (!sessionStats[cat]) sessionStats[cat] = { total: 0, correct: 0 };
       sessionStats[cat].total++;
 
       playSound(isCorrect ? 'correct' : 'wrong');
-      triggerVisualFeedback(isCorrect);
+
+      // 🔘 ボタンが押された場合の「緑/赤の光る演出」
+      if (targetBtn) {
+        if (isCorrect) {
+          targetBtn.classList.add('correct-glow');
+        } else {
+          targetBtn.classList.add('wrong-glow');
+        }
+
+        // 判定中は連打できないようボタンを無効化
+        for (let i = 0; i < 4; i++) {
+          const btn = document.getElementById(`choice-${i}`);
+          if (btn) btn.disabled = true;
+        }
+      }
 
       if (isCorrect) {
         sessionStats[cat].correct++;
@@ -970,6 +996,7 @@
           removeMistake(currentQuestionData);
         }
 
+        // 正解演出を少し見せるために約0.4秒待ってから次へ
         setTimeout(() => {
           if (qIndex < totalQuestionsInGame) {
             qIndex++;
@@ -978,7 +1005,7 @@
           } else {
             finishGame();
           }
-        }, 350);
+        }, 400);
       } else {
         resetCombo();
         if (!isRetryMode) {
@@ -988,6 +1015,18 @@
           document.getElementById('hint-text').innerText = currentQuestionData.hint;
           document.getElementById('hint-box').classList.remove('hidden');
         }
+
+        // 不正解の時は0.5秒後にボタンの無効化と赤く光る効果を解除して再挑戦できるようにする
+        if (targetBtn) {
+          setTimeout(() => {
+            for (let i = 0; i < 4; i++) {
+              const btn = document.getElementById(`choice-${i}`);
+              if (btn) btn.disabled = false;
+            }
+            targetBtn.classList.remove('wrong-glow');
+          }, 500);
+        }
+
         if (inputStyle === 'keyboard') {
           const inputEl = document.getElementById('answer-input');
           inputEl.value = '';
@@ -996,7 +1035,6 @@
       }
     }
 
-    // 🎉 コンボシステム & 紙吹雪演出
     function incrementCombo() {
       currentCombo++;
       const badge = document.getElementById('combo-badge');
@@ -1007,7 +1045,6 @@
         badge.classList.remove('hidden');
       }
 
-      // 3コンボ以上で紙吹雪演出！
       if (currentCombo >= 3 && typeof confetti === 'function') {
         confetti({
           particleCount: 35,
@@ -1049,7 +1086,6 @@
         saveRecord(elapsed);
       }
 
-      // 全問クリアの大紙吹雪演出
       if (typeof confetti === 'function') {
         confetti({ particleCount: 100, spread: 100, origin: { y: 0.5 } });
       }
@@ -1057,7 +1093,6 @@
       showResultScreen(elapsed);
     }
 
-    // 📊 リザルト画面 & 弱点分析グラフ表示
     function showResultScreen(time) {
       document.getElementById('game-screen').classList.add('hidden');
       document.getElementById('result-screen').classList.remove('hidden');
@@ -1115,7 +1150,6 @@
       });
     }
 
-    // 📖 モーダル制御
     function openFormulaModal() {
       document.getElementById('formula-modal').classList.remove('hidden');
     }
